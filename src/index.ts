@@ -9,7 +9,7 @@
  * Leads gesammelt, sonst nichts.
  */
 import { Hono, type Context } from 'hono'
-import { currentSession, login, logout, sameOrigin } from './lib/auth'
+import { currentSession, login, loginReady, logout, sameOrigin } from './lib/auth'
 import { STATUS, isStatus, type Status } from './lib/fragen'
 import {
   LEADS_PER_HOUR, addNote, countBy, createdSince, deleteLead, eventsOf, leadByNr, listLeads, parseLead, recentFromIp,
@@ -122,6 +122,9 @@ app.post('/api/leads', async (c) => {
 
 /* ------------------------------------------------------------- CRM-Login */
 
+const NOT_READY =
+  'Das CRM ist noch nicht eingerichtet: Es fehlt das Passwort. Lokal richtet „bash scripts/demo-lokal.sh“ es ein, live: npx wrangler secret put ADMIN_PASSWORD.'
+
 app.use('/admin/*', async (c, next) => {
   noStore(c)
   await next()
@@ -131,7 +134,7 @@ app.get('/admin/', (c) => c.redirect('/admin'))
 app.get('/admin/login', async (c) => {
   noStore(c)
   if (await currentSession(c)) return c.redirect('/admin')
-  if (!c.env.ADMIN_PASSWORD) return c.html(loginPage('Das CRM ist noch nicht eingerichtet: Secret ADMIN_PASSWORD fehlt (npx wrangler secret put ADMIN_PASSWORD).', 'info'))
+  if (!loginReady(c.env)) return c.html(loginPage(NOT_READY, 'info'))
   return c.html(loginPage())
 })
 
@@ -139,15 +142,16 @@ app.post('/admin/login', async (c) => {
   noStore(c)
   if (!sameOrigin(c)) return c.text('Forbidden', 403)
   const form = await c.req.parseBody()
-  const pw = typeof form.password === 'string' ? form.password : ''
-  const result = await login(c, pw, await ipHash(c.env, clientIp(c)))
+  const email = typeof form.email === 'string' ? form.email.slice(0, 200) : ''
+  const pw = typeof form.password === 'string' ? form.password.slice(0, 500) : ''
+  const result = await login(c, email, pw, await ipHash(c.env, clientIp(c)))
   if (result === 'ok') return c.redirect('/admin', 303)
   const msg = {
-    falsch: 'Das Passwort stimmt nicht.',
+    falsch: 'E-Mail oder Passwort stimmt nicht.',
     gesperrt: 'Zu viele Fehlversuche. Bitte warte 15 Minuten.',
-    'nicht-eingerichtet': 'Das CRM ist noch nicht eingerichtet: Secret ADMIN_PASSWORD fehlt.',
+    'nicht-eingerichtet': NOT_READY,
   }[result]
-  return c.html(loginPage(msg), result === 'gesperrt' ? 429 : 401)
+  return c.html(loginPage(msg, 'error', email), result === 'gesperrt' ? 429 : 401)
 })
 
 app.post('/admin/logout', async (c) => {

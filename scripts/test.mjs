@@ -13,11 +13,13 @@ import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { hashPassword } from './admin-passwort.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PORT = 8799
 const BASE = `http://127.0.0.1:${PORT}`
 const PW = 'test-passwort-' + Math.random().toString(36).slice(2)
+const EMAIL = 'test-login@example.com'
 const persist = mkdtempSync(join(tmpdir(), 'marina-crm-test-'))
 
 let failed = 0
@@ -43,7 +45,7 @@ wrangler(['d1', 'migrations', 'apply', 'marina-betke-crm', '--local', '--persist
 
 console.log('Worker starten …')
 // Eigene Prozessgruppe: So endet beim Aufräumen auch der Worker unter npx/wrangler.
-const dev = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--ip', '127.0.0.1', '--persist-to', persist, '--var', `ADMIN_PASSWORD:${PW}`, '--var', 'IP_SALT:test'], {
+const dev = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--ip', '127.0.0.1', '--persist-to', persist, '--var', `ADMIN_LOGIN_EMAIL:${EMAIL}`, '--var', `ADMIN_PASSWORD_HASH:${hashPassword(PW)}`, '--var', 'IP_SALT:test'], {
   cwd: ROOT,
   stdio: ['ignore', 'pipe', 'pipe'],
   detached: true,
@@ -116,6 +118,24 @@ try {
     check(`${f.split('/').pop()} liefert Teilstücke (206, für Safari)`, part.status === 206 && /^bytes 0-99\//.test(part.headers.get('content-range') || '') && (await part.arrayBuffer()).byteLength === 100, String(part.status))
   }
 
+  console.log('\nInhalte, Knöpfe und Chat')
+  check('Neue Texte im Abschnitt „Warum Verstehen allein nicht reicht“',
+    home.includes('Du hast dich dir selbst entfremdet, du erkennst dich nicht wieder') &&
+    home.includes('im Unterbewusstsein, ein Loch, das sich derzeit nicht zu bessern scheint') &&
+    home.includes('Nach außen scheinst du zu funktionieren') && !home.includes('Nach außen funktionierst du'))
+  const btnTexts = (html) => [...html.matchAll(/<a\b[^>]*class="[^"]*\b(?:btn|wa-float)\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => m[1].replace(/<[^>]+>/g, '').trim())
+  const homeBtns = btnTexts(home)
+  check('Buchungs-Knöpfe heißen „Begleitung buchen“, keiner mehr „Gespräch anfragen“',
+    homeBtns.filter((t) => t === 'Begleitung buchen').length >= 5 && !homeBtns.some((t) => /Gespräch/.test(t)) && !btnTexts(tbHtml).some((t) => /Gespräch/.test(t)))
+  check('Absende-Knopf im Stepper: „Begleitung buchen“', /data-submit-text>Begleitung buchen</.test(tbHtml))
+  check('„23:14 Uhr“ als Messenger-Chat mit denselben Texten', home.includes('data-chat="type"') && home.includes('Können wir reden?') && home.includes('/assets/css/chat.css'))
+  for (const f of ['/assets/images/chat-nacht-desktop.webp', '/assets/images/chat-nacht-m.webp', '/assets/images/stilles-haus-1100.webp', '/assets/images/stilles-haus-m.webp', '/assets/css/chat.css']) {
+    const res = await fetch(BASE + f)
+    check(`${f.split('/').pop()} wird ausgeliefert`, res.status === 200, String(res.status))
+  }
+  const css = await (await fetch(BASE + '/assets/css/hellblau.css')).text()
+  check('Fotokarten nutzen die neuen Bilder', css.includes('chat-nacht-desktop.webp') && css.includes('stilles-haus-1100.webp'))
+
   console.log('\nAnfrage speichern (POST /api/leads)')
   const first = lead({ vorname: 'Stefan', telefon: '0151 23456789', email: 'Stefan@Example.de' })
   let r = await post(first)
@@ -147,18 +167,23 @@ try {
   check('Name mit HTML wird angenommen (und im CRM escaped)', r.status === 200)
 
   console.log('\nCRM: Anmeldung')
+  let html = ''
   r = await admin('/admin')
   check('/admin ohne Sitzung leitet zum Login', r.status === 302 && r.headers.get('location').endsWith('/admin/login'))
-  r = await admin('/admin/login', form({ password: 'falsch' }))
-  check('Falsches Passwort: 401', r.status === 401, String(r.status))
-  r = await admin('/admin/login', form({ password: PW }))
+  html = await (await admin('/admin/login')).text()
+  check('Login-Seite fragt E-Mail und Passwort ab', html.includes('name="email"') && html.includes('name="password"'))
+  r = await admin('/admin/login', form({ email: EMAIL, password: 'falsch' }))
+  check('Richtige E-Mail, falsches Passwort: 401', r.status === 401, String(r.status))
+  r = await admin('/admin/login', form({ email: 'fremd@example.com', password: PW }))
+  check('Falsche E-Mail, richtiges Passwort: 401', r.status === 401, String(r.status))
+  r = await admin('/admin/login', form({ email: '  ' + EMAIL.toUpperCase() + ' ', password: PW }))
   const set = r.headers.get('set-cookie') || ''
   cookie = set.split(';')[0]
-  check('Richtiges Passwort: Weiterleitung und HttpOnly-Cookie', r.status === 303 && /mb_crm=/.test(set) && /HttpOnly/i.test(set), `${r.status} ${set}`)
+  check('E-Mail (Groß/klein egal) und Passwort: Weiterleitung und HttpOnly-Cookie', r.status === 303 && /mb_crm=/.test(set) && /HttpOnly/i.test(set), `${r.status} ${set}`)
 
   console.log('\nCRM: Leads')
   r = await admin('/admin')
-  let html = await r.text()
+  html = await r.text()
   check('Übersicht zeigt die Anfrage', r.status === 200 && html.includes('Stefan'))
   check('Übersicht ohne Honeypot-Eintrag', !html.includes('>Bot<'))
   check('HTML im Namen ist escaped', html.includes('&lt;b&gt;Xss&lt;/b&gt;') && !html.includes('<b>Xss</b>'))
@@ -200,8 +225,8 @@ try {
   let last = 0
   for (let i = 0; i < 8; i++) last = (await post(lead({ telefon: `160 55500${i}${i}` }))).status
   check('Zu viele Anfragen je Verbindung und Stunde: 429', last === 429, String(last))
-  for (let i = 0; i < 5; i++) last = (await admin('/admin/login', form({ password: 'falsch' + i }))).status
-  r = await admin('/admin/login', form({ password: PW }))
+  for (let i = 0; i < 5; i++) last = (await admin('/admin/login', form({ email: EMAIL, password: 'falsch' + i }))).status
+  r = await admin('/admin/login', form({ email: EMAIL, password: PW }))
   check('Nach 5 Fehlversuchen ist der Login gesperrt, auch mit richtigem Passwort', r.status === 429, String(r.status))
 } catch (err) {
   failed++

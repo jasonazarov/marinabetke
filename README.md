@@ -13,18 +13,33 @@ Voraussetzung: Node.js 20 oder neuer (https://nodejs.org).
 bash scripts/demo-lokal.sh
 ```
 
-Beim ersten Start werden die Pakete installiert und 10 Beispiel-Leads eingespielt.
-Danach öffnet sich der Browser:
+Beim ersten Start werden die Pakete installiert, 10 Beispiel-Leads eingespielt, und das
+Skript fragt einmal nach dem CRM-Passwort (siehe „Login“). Danach öffnet sich der Browser:
 
 | | |
 |---|---|
 | Webseite | http://localhost:8090/ |
 | Stepper | http://localhost:8090/terminbuchung/ |
-| CRM | http://localhost:8090/admin, Passwort `demo` |
+| CRM | http://localhost:8090/admin, `marinabetke@hypnose.com` + Passwort |
 
 Was du im Stepper abschickst, steht sofort im CRM. Alles läuft nur auf deinem Rechner
 (Datenbank unter `.wrangler/demo`), nichts wird veröffentlicht. Beenden mit Strg+C.
-Demo-Datenbank zurücksetzen: `bash scripts/demo-lokal.sh --neu`.
+Demo-Datenbank zurücksetzen: `bash scripts/demo-lokal.sh --neu`, Passwort neu festlegen:
+`bash scripts/demo-lokal.sh --passwort`.
+
+## Login ins CRM
+
+E-Mail **`marinabetke@hypnose.com`** (`ADMIN_LOGIN_EMAIL` in `wrangler.toml`) und das
+vereinbarte Passwort, lokal wie live. **Das Passwort steht nirgends im Repo**, auch nicht als
+Hash: Das Repo ist öffentlich, und ein Hash ließe sich offline durchprobieren.
+
+- **Lokal:** `bash scripts/demo-lokal.sh` fragt beim ersten Start einmal danach und legt nur
+  einen PBKDF2-Hash in `.dev.vars` ab (diese Datei ist in `.gitignore`).
+- **Live:** einmalig `npx wrangler secret put ADMIN_PASSWORD` und das Passwort eintippen
+  (Cloudflare speichert es verschlüsselt).
+
+Falsche E-Mail oder falsches Passwort ergeben dieselbe Meldung. Nach 5 Fehlversuchen ist der
+Login 15 Minuten gesperrt. Eine Sitzung hält 30 Tage.
 
 ## Aufbau
 
@@ -93,8 +108,8 @@ Video. Liste mit Statusfilter und Suche (Name, Anfrage-Nr., Telefon, E-Mail; „
 springt in die Suche). Je Lead: alle Antworten, WhatsApp mit vorbereiteter Nachricht,
 Anrufen, E-Mail, Status, Notizen mit Verlauf, endgültig löschen. CSV-Export.
 
-Login mit einem Passwort (Secret `ADMIN_PASSWORD`), Sitzung 30 Tage, 5 Fehlversuche je
-15 Minuten. Optional eine Mail bei jeder neuen Anfrage (Resend).
+Login mit E-Mail und Passwort (siehe „Login ins CRM“). Optional eine Mail bei jeder neuen
+Anfrage (Resend).
 
 ## Lokal entwickeln (ohne Beispiel-Leads)
 
@@ -103,7 +118,7 @@ npm install
 ```
 
 ```bash
-printf 'ADMIN_PASSWORD="lokal"\n' > .dev.vars
+node scripts/admin-passwort.mjs --dev-vars
 ```
 
 ```bash
@@ -138,6 +153,8 @@ Die ausgegebene `database_id` in `wrangler.toml` eintragen, dann:
 npx wrangler d1 migrations apply marina-betke-crm --remote
 ```
 
+Das CRM-Passwort (E-Mail steht schon in `wrangler.toml`):
+
 ```bash
 npx wrangler secret put ADMIN_PASSWORD
 ```
@@ -156,6 +173,17 @@ Optional Mail bei neuer Anfrage: `npx wrangler secret put RESEND_API_KEY` und in
 Eigene Domain: in `wrangler.toml` den Block `[[routes]]` einkommentieren und
 `workers_dev = false` setzen.
 
+## Bildnachweis
+
+Fotos von Unsplash, frei nutzbar unter der [Unsplash-Lizenz](https://unsplash.com/license):
+
+- „23:14 Uhr“: Walter Martin, [Mann allein im Dunkeln mit Handy](https://unsplash.com/photos/a-man-sitting-in-a-dark-room-looking-at-his-cell-phone-VeoHVmfZvHw)
+  (`chat-nacht-desktop.webp`, `chat-nacht-m.webp`)
+- „Das stille Haus“: Vruyr Martirosyan, [leerer Stuhl am Fenster](https://unsplash.com/photos/empty-chair-near-window-AxZNLcEHNIs)
+  (`stilles-haus-1100.webp`, `stilles-haus-m.webp`)
+
+Alle übrigen Bilder stammen von marinabetke.de.
+
 ## Was gegenüber marinabetke.de anders ist
 
 - **Cookie-Banner (CCM19) entfernt**: Der Schlüssel ist an marinabetke.de gebunden, und
@@ -167,6 +195,14 @@ Eigene Domain: in `wrangler.toml` den Block `[[routes]]` einkommentieren und
   Kästen bleiben wie bisher unsichtbar.
 - **Terminkalender ersetzt** durch die Frage nach der Erreichbarkeit: Marina meldet sich
   per WhatsApp.
+- **Alle Buchungs-Knöpfe heißen „Begleitung buchen“** (vorher „Gespräch anfragen“), auch der
+  Absende-Knopf im Stepper. Knöpfe, die nur eine Programmbeschreibung öffnen („Programm
+  ansehen“, „Alle Programme“), sind unverändert.
+- **„23:14 Uhr“ als moderner Messenger-Chat** (`assets/css/chat.css`, Ablauf in
+  `assets/js/chat.js`): „schreibt …“, ihre Nachricht kommt an, Antwort tippen, löschen, neu
+  tippen, senden, blaue Haken. Dieselben Texte wie im Original.
+- **Neue Fotos** für „23:14 Uhr“ und „Das stille Haus“ (siehe „Bildnachweis“).
+- **Drei Texte im Abschnitt „Warum Verstehen allein nicht reicht“** neu formuliert.
 - **Hellblau statt Nachtblau/Kupfer** (siehe „Gestaltung“). Das CRM unter `/admin` bleibt dunkel.
 
 **Datenschutzerklärung anpassen, bevor die Seite unter eigener Domain live geht.** Der

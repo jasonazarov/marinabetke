@@ -1,11 +1,13 @@
 /**
- * Login ins CRM: ein Passwort (Secret ADMIN_PASSWORD), Sitzung als Zufallswert
- * im Cookie, in der Datenbank nur sein Hash. Fünf Fehlversuche je Verbindung
+ * Login ins CRM mit E-Mail und Passwort: E-Mail aus ADMIN_LOGIN_EMAIL
+ * (wrangler.toml), Passwort als Hash in ADMIN_PASSWORD_HASH (lokal in
+ * .dev.vars) oder als Secret ADMIN_PASSWORD (live). Das Passwort steht nie im
+ * Repo. Sitzung als Zufallswert im Cookie, in der Datenbank nur sein Hash. Fünf Fehlversuche je Verbindung
  * in 15 Minuten, danach ist bis zum Ablauf der 15 Minuten Ruhe.
  */
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
-import { randomToken, sameSecret, sha256, type Env } from './util'
+import { randomToken, sameSecret, sha256, verifyPassword, type Env } from './util'
 
 export const COOKIE = 'mb_crm'
 const SESSION_DAYS = 30
@@ -32,13 +34,20 @@ export async function recentFails(env: Env, ipHash: string, now = Date.now()): P
 
 export type LoginResult = 'ok' | 'falsch' | 'gesperrt' | 'nicht-eingerichtet'
 
-export async function login(c: C, password: string, ipHash: string): Promise<LoginResult> {
+export const loginReady = (env: Env) => !!env.ADMIN_LOGIN_EMAIL && !!(env.ADMIN_PASSWORD_HASH || env.ADMIN_PASSWORD)
+
+export async function login(c: C, email: string, password: string, ipHash: string): Promise<LoginResult> {
   const env = c.env
-  if (!env.ADMIN_PASSWORD) return 'nicht-eingerichtet'
+  if (!loginReady(env)) return 'nicht-eingerichtet'
   const now = Date.now()
   if ((await recentFails(env, ipHash, now)) >= MAX_FAILS) return 'gesperrt'
 
-  if (!(await sameSecret(password, env.ADMIN_PASSWORD))) {
+  // Beides immer prüfen: Die Antwortzeit verrät nicht, ob nur die E-Mail stimmt.
+  const [mailOk, pwOk] = await Promise.all([
+    sameSecret(email.trim().toLowerCase(), (env.ADMIN_LOGIN_EMAIL ?? '').trim().toLowerCase()),
+    env.ADMIN_PASSWORD_HASH ? verifyPassword(password, env.ADMIN_PASSWORD_HASH) : sameSecret(password, env.ADMIN_PASSWORD ?? ''),
+  ])
+  if (!(mailOk && pwOk)) {
     await env.DB.prepare('INSERT INTO login_attempts (ip_hash, at) VALUES (?, ?)').bind(ipHash, now).run()
     return (await recentFails(env, ipHash, now)) >= MAX_FAILS ? 'gesperrt' : 'falsch'
   }

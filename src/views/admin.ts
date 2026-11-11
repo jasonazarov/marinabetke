@@ -126,7 +126,7 @@ ${o.body}
 
 /* ------------------------------------------------------------------ Login */
 
-export const loginPage = (msg = '', kind: 'error' | 'info' = 'error'): string => `${head('Anmelden')}
+export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = ''): string => `${head('Anmelden')}
 <body class="crm crm--login">
 <div class="crm__glow" aria-hidden="true"></div>
 <main class="login">
@@ -137,8 +137,10 @@ export const loginPage = (msg = '', kind: 'error' | 'info' = 'error'): string =>
     <p class="muted">Hier landen alle Anfragen aus dem Formular auf der Terminseite.</p>
     ${msg ? `<p class="note note--${kind}" role="alert">${esc(msg)}</p>` : ''}
     <form method="post" action="/admin/login" class="login__form">
+      <label for="email">E-Mail</label>
+      <input id="email" type="email" name="email" value="${esc(email)}" autocomplete="username" inputmode="email" required${email ? '' : ' autofocus'}>
       <label for="pw">Passwort</label>
-      <input id="pw" type="password" name="password" autocomplete="current-password" required autofocus>
+      <input id="pw" type="password" name="password" autocomplete="current-password" required${email ? ' autofocus' : ''}>
       <button class="button button--full" type="submit">Anmelden ${icon('arrow', 16)}</button>
     </form>
   </div>

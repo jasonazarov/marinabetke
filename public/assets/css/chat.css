@@ -1,0 +1,111 @@
+/* ==========================================================================
+   Moderner Messenger-Chat in der Karte „23:14 Uhr“ (Startseite).
+   Optik angelehnt an aktuelle WhatsApp-Chats (helles Design): Kopfzeile,
+   gemusterter Hintergrund, Sprechblasen mit Zipfel, Uhrzeit und blauen
+   Haken, Eingabezeile mit Mikrofon, das beim Tippen zum Senden-Knopf wird.
+   Ablauf: assets/js/chat.js (data-chat="type").
+   ========================================================================== */
+
+.wam {
+  position: relative; z-index: 1;
+  width: min(100%, 340px); margin-top: 20px;
+  border-radius: 20px; overflow: hidden;
+  background: #fff;
+  box-shadow: 0 24px 50px -24px rgba(17, 27, 33, .45), 0 2px 6px rgba(17, 27, 33, .08);
+  font: 400 14.5px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #111b21; text-align: left;
+  -webkit-font-smoothing: antialiased;
+}
+.wam svg { display: block; flex: none; }
+
+/* Kopfzeile */
+.wam__head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px 10px 6px; background: #fff; border-bottom: 1px solid #e9edef;
+}
+.wam__back { color: #111b21; }
+.wam__ava svg { border-radius: 50%; }
+.wam__who { flex: 1; min-width: 0; line-height: 1.2; }
+.wam__who b { display: block; font-weight: 600; font-size: 15.5px; }
+.wam__who small { display: block; font-size: 12.5px; color: #667781; transition: color .2s; }
+.wam__who small.is-live { color: #00a884; }
+.wam__acts { display: flex; gap: 18px; color: #111b21; }
+.wam__acts svg { width: 21px; height: 21px; }
+
+/* Verlauf */
+.wam__body {
+  display: flex; flex-direction: column; gap: 6px;
+  min-height: 176px; padding: 12px 12px 14px;
+  background-color: #efeae2;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' fill='none' stroke='%23000' stroke-opacity='.055' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 14l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z'/%3E%3Cpath d='M78 22c3-5 11-3 10 3-1 5-10 10-10 10s-9-5-10-10c-1-6 7-8 10-3z'/%3E%3Ccircle cx='100' cy='70' r='8'/%3E%3Cpath d='M12 70c6-6 12 6 18 0s12 6 18 0'/%3E%3Cpath d='M64 96a10 10 0 1 0 10-12 8 8 0 0 1-10 12z'/%3E%3Crect x='30' y='92' width='16' height='12' rx='3'/%3E%3Cpath d='M56 48h14M63 41v14'/%3E%3C/svg%3E");
+}
+.wam__day {
+  align-self: center; margin-bottom: 4px; padding: 4px 10px; border-radius: 8px;
+  background: #fff; color: #54656f; font-size: 12px; font-weight: 500;
+  box-shadow: 0 1px .5px rgba(11, 20, 26, .13);
+}
+
+/* Sprechblasen */
+.wam__msg {
+  position: relative; max-width: 84%;
+  padding: 6px 8px 7px 9px; border-radius: 8px;
+  box-shadow: 0 1px .5px rgba(11, 20, 26, .13);
+  display: none;
+}
+.wam__msg.is-on { display: block; animation: wamIn .28s cubic-bezier(.2, .8, .3, 1.2) both; }
+@keyframes wamIn { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+.wam__msg--in { align-self: flex-start; background: #fff; border-top-left-radius: 0; transform-origin: 0 0; }
+.wam__msg--out { align-self: flex-end; background: #d9fdd3; border-top-right-radius: 0; transform-origin: 100% 0; }
+.wam__msg::before {
+  content: ""; position: absolute; top: 0; width: 8px; height: 13px;
+}
+.wam__msg--in::before { left: -7px; background: #fff; clip-path: polygon(100% 0, 0 0, 100% 100%); }
+.wam__msg--out::before { right: -7px; background: #d9fdd3; clip-path: polygon(0 0, 100% 0, 0 100%); }
+.wam__text { white-space: pre-wrap; }
+.wam__meta {
+  float: right; position: relative; top: 6px; margin: 0 0 0 10px;
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 11px; color: #667781; line-height: 1;
+}
+.wam__ticks { display: inline-flex; color: #8696a0; transition: color .35s ease; }
+.wam__ticks.is-read { color: #53bdeb; }
+
+/* „schreibt …“ als drei springende Punkte */
+.wam__msg--dots { padding: 11px 12px; }
+.wam__msg--dots.is-on { display: inline-flex; gap: 4px; }
+.wam__msg--dots i { width: 7px; height: 7px; border-radius: 50%; background: #8696a0; animation: wamDot 1.1s infinite ease-in-out; }
+.wam__msg--dots i:nth-child(2) { animation-delay: .15s; }
+.wam__msg--dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes wamDot { 0%, 60%, 100% { transform: translateY(0); opacity: .45; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+/* Eingabezeile */
+.wam__bar { display: flex; align-items: center; gap: 6px; padding: 7px 8px; background: #f0f2f5; }
+.wam__icon { display: grid; place-items: center; width: 34px; height: 34px; color: #54656f; flex: none; }
+.wam__field {
+  flex: 1; min-width: 0; display: flex; align-items: center;
+  height: 40px; padding: 0 4px 0 14px; border-radius: 21px; background: #fff;
+  font-size: 15px; white-space: nowrap; overflow: hidden;
+}
+.wam__typed { overflow: hidden; text-overflow: clip; direction: ltr; }
+.wam__caret { width: 1.5px; height: 19px; margin-left: 1px; background: #00a884; flex: none; animation: wamCaret 1s steps(1) infinite; }
+@keyframes wamCaret { 50% { opacity: 0; } }
+.wam__ph { color: #8696a0; margin-left: 2px; }
+.wam__field .wam__icon--in { margin-left: auto; width: 30px; }
+.wam__bar.is-typing .wam__ph, .wam__bar.is-typing .wam__cam { display: none; }
+.wam__send {
+  display: grid; place-items: center; width: 42px; height: 42px; flex: none;
+  border-radius: 50%; background: #00a884; color: #fff;
+}
+.wam__send svg { grid-area: 1 / 1; transition: transform .2s ease, opacity .2s ease; }
+.wam__go { opacity: 0; transform: scale(.4) rotate(-30deg); }
+.wam__bar.is-typing .wam__go { opacity: 1; transform: none; }
+.wam__bar.is-typing .wam__mic { opacity: 0; transform: scale(.4); }
+
+@media (max-width: 380px) {
+  .wam__acts { gap: 12px; }
+  .wam__cam { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wam__msg.is-on { animation: none; }
+  .wam__msg--dots i, .wam__caret { animation: none; }
+}

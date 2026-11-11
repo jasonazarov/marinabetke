@@ -63,21 +63,46 @@ body.legal-page .home-header__bar {
 /* Kursiver Akzent („noch nicht“) im Akzentblau */
 .hero h1 em, .hero h1 i, h1 em, h2 em { color: #1f7cc4; }
 
-/* ---------- Fotokarten („23:14 Uhr“, „Das stille Haus“): heller Schleier hinter dem Text ----------
+/* ---------- Fotokarten („23:14 Uhr“, „Das stille Haus“) ----------
+   Fotos von Unsplash (freie Lizenz, Nachweis im README):
+     23:14 Uhr       Walter Martin: Mann allein im Dunkeln, Blick aufs Handy
+     Das stille Haus Vruyr Martirosyan: leerer Stuhl am Fenster, kühles Tageslicht
+   Heller Schleier nur hinter dem Text, das Foto bleibt daneben sichtbar.
    Die langsame Zoom-Bewegung der Fotos (efzoom) bleibt. */
-.editorial-feature-card.ef-img--1 {
-  --efbg: linear-gradient(90deg, rgba(238, 247, 253, .97) 0%, rgba(238, 247, 253, .93) 46%, rgba(238, 247, 253, .5) 72%, rgba(238, 247, 253, .08) 100%), url(../images/scene-12-1100.webp);
-}
-.editorial-feature-card.ef-img--2 {
-  --efbg: linear-gradient(90deg, rgba(238, 247, 253, .97) 0%, rgba(238, 247, 253, .93) 46%, rgba(238, 247, 253, .5) 72%, rgba(238, 247, 253, .08) 100%), url(../images/scene-08-1100.webp);
-}
-@media (max-width: 1100px) {
-  .editorial-feature-card.ef-img--1 {
-    --efbg: linear-gradient(0deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .92) 48%, rgba(238, 247, 253, .25) 88%), url(../images/scene-12-m.webp);
-  }
-  .editorial-feature-card.ef-img--2 {
-    --efbg: linear-gradient(0deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .92) 48%, rgba(238, 247, 253, .25) 88%), url(../images/scene-08-m.webp);
-  }
-}
+.editorial-feature-card.ef-img { background-color: #eef7fd; }
 .editorial-feature-card.ef-img strong { color: #1a64a0; }
 .editorial-feature-card.ef-img p { color: var(--tinte); }
+
+/* 23:14 Uhr: Text und Chat links, das Gesicht rechts */
+.editorial-feature-card.ef-img--1 {
+  justify-content: flex-start;
+  --efbg: linear-gradient(90deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .96) 52%, rgba(238, 247, 253, .55) 61%, rgba(238, 247, 253, 0) 74%), url(../images/chat-nacht-desktop.webp);
+  --efpos: 100% 30%;
+  --efo: 75% 35%;
+}
+.editorial-feature-card.ef-img--1 strong,
+.editorial-feature-card.ef-img--1 p { max-width: min(340px, 54%); }
+
+/* Das stille Haus: Fenster und leerer Stuhl oben, der Text darunter */
+.editorial-feature-card.ef-img--2 {
+  --efbg: linear-gradient(0deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .95) 34%, rgba(238, 247, 253, .5) 46%, rgba(238, 247, 253, 0) 60%), url(../images/stilles-haus-1100.webp);
+  --efpos: 50% 20%;
+  --efo: 60% 30%;
+}
+
+@media (max-width: 1100px) {
+  /* Handy/Tablet: Foto oben als Band, Inhalt darunter auf hellem Grund */
+  .editorial-feature-card.ef-img--1 {
+    padding-top: 230px !important;
+    --efbg: linear-gradient(180deg, rgba(238, 247, 253, 0) 0, rgba(238, 247, 253, 0) 140px, rgba(238, 247, 253, .98) 250px), url(../images/chat-nacht-m.webp);
+    --efpos: 50% 0;
+  }
+  .editorial-feature-card.ef-img--1::after { background-size: 100% auto, 100% auto !important; background-repeat: no-repeat !important; }
+  .editorial-feature-card.ef-img--1 strong,
+  .editorial-feature-card.ef-img--1 p { max-width: none; }
+  .editorial-feature-card.ef-img--2 {
+    min-height: 520px;
+    --efbg: linear-gradient(0deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .97) 50%, rgba(238, 247, 253, .4) 60%, rgba(238, 247, 253, 0) 72%), url(../images/stilles-haus-m.webp);
+    --efpos: 50% 15%;
+  }
+}

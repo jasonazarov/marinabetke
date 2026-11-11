@@ -50,12 +50,16 @@ migrations_dir = "migrations"
 # pattern = "marinabetke.de"
 # custom_domain = true
 #
-# Secrets (nie in eine Datei im Repo):
-#   npx wrangler secret put ADMIN_PASSWORD   Pflicht: Login ins CRM
+# Login ins CRM: die E-Mail steht unten unter [vars], das Passwort NIE im Repo.
+#   live:   npx wrangler secret put ADMIN_PASSWORD   (Passwort eintippen)
+#   lokal:  bash scripts/demo-lokal.sh fragt beim ersten Start danach und legt
+#           nur den Hash in .dev.vars ab (ADMIN_PASSWORD_HASH)
+# Weitere Secrets:
 #   npx wrangler secret put IP_SALT          empfohlen: beliebige Zufallszeichen
 #   npx wrangler secret put RESEND_API_KEY   optional: Mail bei neuer Anfrage
 # Variablen für die Mail (optional, nur mit RESEND_API_KEY):
 [vars]
+ADMIN_LOGIN_EMAIL = "marinabetke@hypnose.com"
 ADMIN_EMAIL = ""
 MAIL_FROM = ""
 # ---------------------------------------------------------------------------

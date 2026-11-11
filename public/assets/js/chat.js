@@ -7,19 +7,30 @@
   const scenes = [];
   const scene = (el, loop, still) => { if (el) scenes.push({ el, loop, still, on: false, running: false }); };
 
-  // 23:14 Uhr: tippen, löschen, neu tippen, doch senden
-  const typeEl = document.querySelector('.chat-demo--type');
+  // 23:14 Uhr (Startseite, moderner Messenger-Chat, assets/css/chat.css):
+  // „schreibt …“, ihre Nachricht kommt an, dann tippen, löschen, neu tippen, doch senden.
+  const typeEl = document.querySelector('[data-chat="type"]');
+  const q = (sel) => typeEl.querySelector(sel);
   scene(typeEl, async (s) => {
-    const typed = typeEl.querySelector('.chat-demo__typed');
-    const bubble = typeEl.querySelector('.chat-bubble--out');
-    const text = bubble.querySelector('.chat-bubble__text');
-    const ticks = bubble.querySelector('.chat-ticks');
-    const comp = typeEl.querySelector('.chat-demo__composer');
+    const typed = q('[data-chat-typed]');
+    const comp = q('[data-chat-composer]');
+    const status = q('[data-chat-status]');
+    const dots = q('[data-chat-dots]');
+    const incoming = q('[data-chat-in]');
+    const out = q('[data-chat-out]');
+    const outText = q('[data-chat-out-text]');
+    const ticks = q('[data-chat-ticks]');
     const sync = () => comp.classList.toggle('is-typing', typed.textContent.length > 0);
+    const setStatus = (txt, live) => { status.textContent = txt; status.classList.toggle('is-live', live); };
     const type = async (str) => { for (const ch of str) { if (!s.on) return; typed.textContent += ch; sync(); await wait(70 + Math.random() * 60); } };
     const erase = async () => { while (typed.textContent && s.on) { typed.textContent = typed.textContent.slice(0, -1); sync(); await wait(28); } };
-    bubble.classList.remove('is-sent'); ticks.classList.remove('is-read'); typed.textContent = ''; sync();
-    await wait(500);
+    [dots, incoming, out].forEach((el) => el.classList.remove('is-on'));
+    ticks.classList.remove('is-read'); typed.textContent = ''; sync(); setStatus('online', false);
+    await wait(700); if (!s.on) return;
+    setStatus('schreibt …', true); dots.classList.add('is-on');
+    await wait(1700); if (!s.on) return;
+    dots.classList.remove('is-on'); setStatus('online', false); incoming.classList.add('is-on');
+    await wait(1300);
     await type('Nein. Bitte schreib mir nicht mehr.'); await wait(900);
     await erase(); await wait(500);
     await type('Was willst du denn?'); await wait(800);
@@ -27,13 +38,14 @@
     const last = 'Okay. Aber nur kurz.';
     await type(last); await wait(700);
     if (!s.on) return;
-    typed.textContent = ''; sync(); text.textContent = last; bubble.classList.add('is-sent');
+    typed.textContent = ''; sync(); outText.textContent = last; out.classList.add('is-on');
     await wait(1600); ticks.classList.add('is-read');
-    await wait(4200);
+    await wait(4500);
   }, () => {
-    typeEl.querySelector('.chat-bubble__text').textContent = 'Okay. Aber nur kurz.';
-    typeEl.querySelector('.chat-bubble--out').classList.add('is-sent');
-    typeEl.querySelector('.chat-ticks').classList.add('is-read');
+    q('[data-chat-in]').classList.add('is-on');
+    q('[data-chat-out-text]').textContent = 'Okay. Aber nur kurz.';
+    q('[data-chat-out]').classList.add('is-on');
+    q('[data-chat-ticks]').classList.add('is-read');
   });
 
   // Plötzlich bist du schuld: oben steht "schreibt …" (wie bei WhatsApp), dann zwei Vorwürfe

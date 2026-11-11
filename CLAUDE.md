@@ -7,7 +7,12 @@
   kein Anlegen von Datenbanken oder Secrets bei Cloudflare, solange der Auftraggeber das
   nicht ausdrücklich sagt. Gezeigt wird über die lokale Demo.
 - **Lokale Demo:** `bash scripts/demo-lokal.sh` → http://localhost:8090 (CRM unter
-  `/admin`, Passwort `demo`). `--neu` setzt die Demo-Datenbank zurück.
+  `/admin`). `--neu` setzt die Demo-Datenbank zurück, `--passwort` das CRM-Passwort.
+- **CRM-Login** (Vorgabe des Auftraggebers): E-Mail `marinabetke@hypnose.com`
+  (`ADMIN_LOGIN_EMAIL` in `wrangler.toml`) + Passwort. Das Repo ist öffentlich: das Passwort
+  und sein Hash kommen NIE ins Repo. Lokal liegt nur der Hash in `.dev.vars`, live das
+  Passwort als Secret (`npx wrangler secret put ADMIN_PASSWORD`).
+- **Buchungs-Knöpfe heißen „Begleitung buchen“** (Vorgabe des Auftraggebers), überall.
 - **Vor jedem Commit:** `npx tsc --noEmit` und `npm test` (startet einen lokalen Worker
   mit eigener Datenbank, alle Prüfungen müssen grün sein).
 - **Fragen und Antworten des Steppers** stehen nur in `src/lib/fragen.ts`: Formular,

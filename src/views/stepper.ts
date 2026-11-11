@@ -22,7 +22,7 @@ const STEPPER_CONFIG = {
   endpoint: '/api/leads',
   titles: STEP_TITLES,
   stepLabel: 'Schritt {n} von {total} · {title}',
-  submitText: 'Gespräch anfragen',
+  submitText: 'Begleitung buchen',
   sendingText: 'Wird gesendet …',
   wa: WA_NUMMER,
   mail: KONTAKT_MAIL,
@@ -40,7 +40,7 @@ const STEPPER_CONFIG = {
     email: 'Bitte prüf deine E-Mail-Adresse oder lass das Feld leer.',
     einwilligung: 'Ohne dein Häkchen kann ich deine Anfrage nicht speichern.',
     tooMany: 'Von dieser Verbindung kamen gerade sehr viele Anfragen. Schreib mir bitte direkt per WhatsApp.',
-    generic: 'Deine Anfrage ist gerade nicht bei mir angekommen. Prüf kurz deine Verbindung und tippe noch einmal auf „Gespräch anfragen“. Oder schreib mir direkt per WhatsApp.',
+    generic: 'Deine Anfrage ist gerade nicht bei mir angekommen. Prüf kurz deine Verbindung und tippe noch einmal auf „Begleitung buchen“. Oder schreib mir direkt per WhatsApp.',
   },
   loadTexts: [
     [0, 'Deine Antworten werden übertragen …'],
@@ -180,7 +180,7 @@ export const stepper = (): string => {
         <div class="stepper__nav">
           <button type="button" class="stepper__back" data-back hidden>${BACK}Zurück</button>
           <button type="button" class="btn stepper__next" data-next disabled>${ARROW}<span>Weiter</span></button>
-          <button type="submit" class="btn stepper__next" data-submit hidden>${ARROW}<span data-submit-text>Gespräch anfragen</span></button>
+          <button type="submit" class="btn stepper__next" data-submit hidden>${ARROW}<span data-submit-text>Begleitung buchen</span></button>
         </div>
       </form>
 

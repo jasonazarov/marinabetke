@@ -1,7 +1,11 @@
 export interface Env {
   DB: D1Database
   ASSETS: Fetcher
-  /** Passwort für /admin. Ohne dieses Secret bleibt das CRM zu. */
+  /** Login ins CRM: E-Mail-Adresse (wrangler.toml, [vars]). */
+  ADMIN_LOGIN_EMAIL?: string
+  /** Passwort als PBKDF2-Hash (node scripts/admin-passwort.mjs). Live als Secret, lokal in .dev.vars. */
+  ADMIN_PASSWORD_HASH?: string
+  /** Alternativ das Passwort selbst als Secret (wrangler secret put ADMIN_PASSWORD). */
   ADMIN_PASSWORD?: string
   /** Salz für gehashte IP-Adressen (Drosselung). */
   IP_SALT?: string
@@ -67,3 +71,44 @@ export function ago(ms: number, now = Date.now()): string {
 
 /** Nur die Ziffern einer Nummer mit Ländervorwahl, für wa.me und tel:. */
 export const phoneDigits = (tel: string) => tel.replace(/\D/g, '')
+
+/* ------------------------------------------------------------ Passwort
+
+   Format: pbkdf2-sha256.<runden>.<salz base64>.<hash base64>
+   Punkte als Trenner, weil wrangler ein Dollarzeichen in .dev.vars als
+   Variable auflöst. Dasselbe Format erzeugt scripts/admin-passwort.mjs. 100.000 Runden sind das
+   Maximum, das Cloudflare Workers für PBKDF2 erlaubt. */
+
+const b64 = (bytes: Uint8Array) => btoa(String.fromCharCode(...bytes))
+const unb64 = (s: string) => Uint8Array.from(atob(s), (ch) => ch.charCodeAt(0))
+
+async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])
+  const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256)
+  return new Uint8Array(bits)
+}
+
+export async function hashPassword(password: string, iterations = 100000): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  return `pbkdf2-sha256.${iterations}.${b64(salt)}.${b64(await pbkdf2(password, salt, iterations))}`
+}
+
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  const parts = stored.trim().split('.')
+  if (parts.length !== 4 || parts[0] !== 'pbkdf2-sha256') return false
+  const iterations = Number(parts[1])
+  if (!Number.isInteger(iterations) || iterations < 1 || iterations > 100000) return false
+  let salt: Uint8Array
+  let expected: Uint8Array
+  try {
+    salt = unb64(parts[2])
+    expected = unb64(parts[3])
+  } catch {
+    return false
+  }
+  const actual = await pbkdf2(password, salt, iterations)
+  if (actual.length !== expected.length) return false
+  let diff = 0
+  for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i]
+  return diff === 0
+}

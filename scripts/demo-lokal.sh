@@ -2,21 +2,33 @@
 # ---------------------------------------------------------------------------
 # Lokale Demo: Webseite, Stepper und CRM auf dem eigenen Rechner.
 #
-#   bash scripts/demo-lokal.sh          starten (Beispiel-Leads beim ersten Mal)
-#   bash scripts/demo-lokal.sh --neu    Demo-Datenbank leeren und neu befüllen
+#   bash scripts/demo-lokal.sh              starten (Beispiel-Leads beim ersten Mal)
+#   bash scripts/demo-lokal.sh --neu        Demo-Datenbank leeren und neu befüllen
+#   bash scripts/demo-lokal.sh --passwort   CRM-Passwort neu festlegen
+#
+# CRM-Login: die E-Mail aus wrangler.toml (ADMIN_LOGIN_EMAIL) und das Passwort,
+# nach dem das Skript beim ersten Start einmal fragt. Gespeichert wird nur sein
+# Hash, in .dev.vars auf diesem Rechner (nicht im Repo).
 #
 # Läuft komplett lokal: eigene Datenbank unter .wrangler/demo, nichts geht ins
 # Internet, nichts wird veröffentlicht. Beenden mit Strg+C.
 #
-#   PORT=9000 bash scripts/demo-lokal.sh            anderer Port (Standard 8090)
-#   DEMO_PASSWORT=geheim bash scripts/demo-lokal.sh anderes CRM-Passwort (Standard demo)
+#   PORT=9000 bash scripts/demo-lokal.sh   anderer Port (Standard 8090)
 # ---------------------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 PORT="${PORT:-8090}"
-PASSWORT="${DEMO_PASSWORT:-demo}"
 DATEN=".wrangler/demo"
+NEU_DB=0
+NEU_PW=0
+for arg in "$@"; do
+  case "$arg" in
+    --neu) NEU_DB=1 ;;
+    --passwort) NEU_PW=1 ;;
+    *) echo "Unbekannte Option: $arg" >&2; exit 1 ;;
+  esac
+done
 
 if ! command -v node >/dev/null 2>&1; then
   echo "Node.js fehlt. Bitte Node.js 20 oder neuer installieren: https://nodejs.org" >&2
@@ -33,9 +45,22 @@ if [ ! -d node_modules ]; then
   npm install --no-audit --no-fund
 fi
 
-if [ "${1:-}" = "--neu" ]; then
+LOGIN_EMAIL="$(sed -n 's/^ADMIN_LOGIN_EMAIL *= *"\(.*\)"/\1/p' wrangler.toml)"
+
+# CRM-Passwort: einmal abfragen, nur den Hash lokal ablegen.
+if [ "$NEU_PW" = 1 ] || ! grep -q '^ADMIN_PASSWORD_HASH=' .dev.vars 2>/dev/null; then
+  echo "▸ CRM-Login einrichten (nur einmal, bleibt auf diesem Rechner)"
+  echo "  E-Mail:   $LOGIN_EMAIL"
+  if [ -n "${DEMO_PASSWORT:-}" ]; then
+    ADMIN_PASSWORT="$DEMO_PASSWORT" node scripts/admin-passwort.mjs --dev-vars
+  else
+    node scripts/admin-passwort.mjs --dev-vars
+  fi
+fi
+
+if [ "$NEU_DB" = 1 ] && [ -d "$DATEN" ]; then
   echo "▸ Demo-Datenbank leeren …"
-  rm -rf "$DATEN"
+  rm -r -- "$DATEN"
 fi
 
 NEU=0
@@ -57,7 +82,7 @@ cat <<EOF
     Webseite      http://localhost:$PORT/
     Stepper       http://localhost:$PORT/terminbuchung/
     CRM           http://localhost:$PORT/admin
-    Passwort      $PASSWORT
+    Login         $LOGIN_EMAIL + dein Passwort
 
     Was du im Stepper abschickst, steht sofort im CRM.
     Beenden mit Strg+C.
@@ -79,4 +104,4 @@ EOF
 ) &
 
 exec npx wrangler dev --port "$PORT" --persist-to "$DATEN" \
-  --var "ADMIN_PASSWORD:$PASSWORT" --var "IP_SALT:demo" --var "LEADS_PER_HOUR:1000" --log-level warn
+  --var "IP_SALT:demo" --var "LEADS_PER_HOUR:1000" --log-level warn
