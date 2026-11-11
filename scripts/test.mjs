@@ -104,6 +104,18 @@ try {
   const unknown = await fetch(BASE + '/gibt-es-nicht/', { redirect: 'manual' })
   check('Unbekannte Seite führt zur Startseite', unknown.status === 301)
 
+  console.log('\nHellblau und Animation')
+  let gen = true
+  try { execFileSync('node', ['scripts/hellblau.mjs', '--check'], { cwd: ROOT, stdio: 'pipe' }) } catch { gen = false }
+  check('hellblau.css ist aus style.css + styles/hellblau-extra.css erzeugt und aktuell', gen)
+  const home = await (await fetch(BASE + '/')).text()
+  check('Startseite und Terminseite laden hellblau.css (nicht das Original)', home.includes('/assets/css/hellblau.css') && !home.includes('/assets/css/style.css') && tbHtml.includes('/assets/css/hellblau.css'))
+  check('Hero-Video ist eingebunden (Desktop und Handy, absolute Pfade)', home.includes('data-src="/assets/images/scene-01-loop.mp4"') && home.includes('data-src-m="/assets/images/scene-01-loop-m.mp4"'))
+  for (const f of ['/assets/images/scene-01-loop.mp4', '/assets/images/scene-01-loop-m.mp4', '/assets/audio/sprachnachricht-klient.m4a']) {
+    const part = await fetch(BASE + f, { headers: { Range: 'bytes=0-99' } })
+    check(`${f.split('/').pop()} liefert Teilstücke (206, für Safari)`, part.status === 206 && /^bytes 0-99\//.test(part.headers.get('content-range') || '') && (await part.arrayBuffer()).byteLength === 100, String(part.status))
+  }
+
   console.log('\nAnfrage speichern (POST /api/leads)')
   const first = lead({ vorname: 'Stefan', telefon: '0151 23456789', email: 'Stefan@Example.de' })
   let r = await post(first)

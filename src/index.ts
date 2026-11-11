@@ -42,6 +42,50 @@ app.get('/terminbuchung/', (c) => {
   return c.html(terminbuchungPage())
 })
 
+/* ---------------------------------------------------------- Video, Audio
+
+   Das Hero-Video (Nebel über dem See) und Stefans Sprachnachricht. Browser
+   holen Medien in Teilstücken (Range); Safari spielt ohne 206-Antwort gar
+   nicht ab. Darum liefert der Worker diese Dateien selbst aus. */
+app.get('/assets/images/:file{.+\\.mp4}', (c) => media(c))
+app.get('/assets/audio/:file', (c) => media(c))
+
+async function media(c: C): Promise<Response> {
+  const url = new URL(c.req.url)
+  const res = await c.env.ASSETS.fetch(new Request(url.origin + url.pathname))
+  if (!res.ok) return res
+  const buf = await res.arrayBuffer()
+  const size = buf.byteLength
+  const headers: Record<string, string> = {
+    'Content-Type': res.headers.get('content-type') || 'application/octet-stream',
+    'Accept-Ranges': 'bytes',
+    'Cache-Control': 'public, max-age=2592000',
+  }
+  const etag = res.headers.get('etag')
+  if (etag) headers.ETag = etag
+  const range = c.req.header('range')
+  const m = range ? /^bytes=(\d*)-(\d*)$/.exec(range.trim()) : null
+  if (!m || (m[1] === '' && m[2] === '')) {
+    return new Response(c.req.method === 'HEAD' ? null : buf, { headers: { ...headers, 'Content-Length': String(size) } })
+  }
+  let start: number
+  let end: number
+  if (m[1] === '') {
+    start = Math.max(0, size - Number(m[2])) // die letzten n Bytes
+    end = size - 1
+  } else {
+    start = Number(m[1])
+    end = m[2] === '' ? size - 1 : Math.min(Number(m[2]), size - 1)
+  }
+  if (start >= size || start > end) {
+    return new Response(null, { status: 416, headers: { ...headers, 'Content-Range': `bytes */${size}` } })
+  }
+  return new Response(c.req.method === 'HEAD' ? null : buf.slice(start, end + 1), {
+    status: 206,
+    headers: { ...headers, 'Content-Range': `bytes ${start}-${end}/${size}`, 'Content-Length': String(end - start + 1) },
+  })
+}
+
 /* ----------------------------------------------------------------- API */
 
 app.post('/api/leads', async (c) => {

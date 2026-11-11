@@ -1,0 +1,83 @@
+/* ==========================================================================
+   Hellblau: Feinheiten von Hand. Wird von scripts/hellblau.mjs ans Ende von
+   hellblau.css gehängt. Hier steht, was eine reine Umfärbung nicht trifft.
+   ========================================================================== */
+
+body { background: var(--papier); }
+
+/* ---------- Knöpfe: kräftiges Blau, weiße Schrift ---------- */
+/* Weiße Schrift mit !important: Marinas Regeln für Kopfzeile und Hero auf dem Handy
+   setzen die Schriftfarbe der Knöpfe sonst wieder dunkel. */
+.btn:not(.btn--outline):not(.btn--text):not(.btn--wa) {
+  background: linear-gradient(180deg, #2a8ad6, #1f7cc4);
+  color: #fff !important;
+  box-shadow: 0 16px 34px -16px rgba(31, 124, 196, .65), inset 0 1px 0 rgba(255, 255, 255, .28);
+}
+.btn:not(.btn--outline):not(.btn--text):not(.btn--wa):hover { background: #1868a6; color: #fff !important; }
+.btn .btn__chip { background: rgba(255, 255, 255, .22); color: #fff; }
+.btn:hover .btn__chip { background: rgba(255, 255, 255, .32); }
+.btn--outline { color: var(--nacht); border-color: var(--hb-border); }
+.wa-float { background: #1f7cc4; color: #fff; }
+.wa-float:hover { background: #1868a6; color: #fff; }
+
+/* ---------- Kopfzeile: helles Glas statt Nachtblau ---------- */
+.home-header__kontakt { background: #d3e8f8; color: var(--nacht); }
+.home-header__kontakt a, .home-header__wa { color: #1a64a0; }
+.home-header__bar,
+body.is-scrolled .home-header__bar,
+body.home .home-header__bar,
+body.topic-page .home-header__bar,
+body.legal-page .home-header__bar {
+  background: rgba(255, 255, 255, .78);
+  border-color: rgba(31, 124, 196, .18);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow: 0 18px 40px -26px rgba(22, 70, 112, .45);
+}
+.home-header__brand, .brand-word, .home-header__tagline, .home-nav a { color: var(--nacht); }
+.home-header__tagline { color: var(--leise); }
+.home-nav a:hover { color: #1a64a0; }
+.home-header__burger span { background: var(--nacht); }
+
+/* ---------- Hero: das Video bleibt, als heller Morgen über dem See ---------- */
+.hero { background: linear-gradient(180deg, #e3f1fb, #d3e8f8); }
+.hero__video, .hero__photo, .hero__img { filter: brightness(1.22) saturate(.92) contrast(.94); }
+.hero__scrim,
+.hero--scene-on .hero__scrim,
+.hero__photo--scene ~ .hero__scrim,
+.topic-page .hero__photo--scene ~ .hero__scrim {
+  background:
+    linear-gradient(90deg, rgba(236, 246, 253, .95) 0%, rgba(236, 246, 253, .86) 34%, rgba(236, 246, 253, .38) 60%, rgba(236, 246, 253, .06) 100%),
+    linear-gradient(180deg, rgba(196, 226, 248, .35) 0%, rgba(196, 226, 248, 0) 40%);
+}
+.hero::after { background: linear-gradient(180deg, transparent, var(--papier)); }
+@media (max-width: 900px) {
+  .hero__scrim,
+  .hero--scene-on .hero__scrim,
+  .hero__photo--scene ~ .hero__scrim,
+  .topic-page .hero__photo--scene ~ .hero__scrim {
+    background: linear-gradient(180deg, rgba(236, 246, 253, .55) 0%, rgba(236, 246, 253, .82) 45%, rgba(236, 246, 253, .96) 100%);
+  }
+}
+
+/* Kursiver Akzent („noch nicht“) im Akzentblau */
+.hero h1 em, .hero h1 i, h1 em, h2 em { color: #1f7cc4; }
+
+/* ---------- Fotokarten („23:14 Uhr“, „Das stille Haus“): heller Schleier hinter dem Text ----------
+   Die langsame Zoom-Bewegung der Fotos (efzoom) bleibt. */
+.editorial-feature-card.ef-img--1 {
+  --efbg: linear-gradient(90deg, rgba(238, 247, 253, .97) 0%, rgba(238, 247, 253, .93) 46%, rgba(238, 247, 253, .5) 72%, rgba(238, 247, 253, .08) 100%), url(../images/scene-12-1100.webp);
+}
+.editorial-feature-card.ef-img--2 {
+  --efbg: linear-gradient(90deg, rgba(238, 247, 253, .97) 0%, rgba(238, 247, 253, .93) 46%, rgba(238, 247, 253, .5) 72%, rgba(238, 247, 253, .08) 100%), url(../images/scene-08-1100.webp);
+}
+@media (max-width: 1100px) {
+  .editorial-feature-card.ef-img--1 {
+    --efbg: linear-gradient(0deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .92) 48%, rgba(238, 247, 253, .25) 88%), url(../images/scene-12-m.webp);
+  }
+  .editorial-feature-card.ef-img--2 {
+    --efbg: linear-gradient(0deg, rgba(238, 247, 253, .98) 0%, rgba(238, 247, 253, .92) 48%, rgba(238, 247, 253, .25) 88%), url(../images/scene-08-m.webp);
+  }
+}
+.editorial-feature-card.ef-img strong { color: #1a64a0; }
+.editorial-feature-card.ef-img p { color: var(--tinte); }

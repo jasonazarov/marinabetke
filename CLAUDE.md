@@ -14,3 +14,7 @@
   Prüfung auf dem Server und Anzeige im CRM lesen dieselbe Liste.
 - **Datenschutzerklärung** (`public/datenschutz/`) ist noch der alte Text von
   marinabetke.de und muss vor einem Livegang angepasst werden (siehe README).
+- **Gestaltung Hellblau** (Vorgabe des Auftraggebers: Hoffnung): Seiten laden
+  `public/assets/css/hellblau.css`, erzeugt von `node scripts/hellblau.mjs` aus dem
+  unveränderten Original `style.css` plus `styles/hellblau-extra.css`. Nie hellblau.css von
+  Hand ändern. Die Animationen (Hero-Video, Zoom der Fotokarten) müssen bleiben.

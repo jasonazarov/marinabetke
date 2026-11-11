@@ -39,8 +39,34 @@ Demo-Datenbank zurücksetzen: `bash scripts/demo-lokal.sh --neu`.
 | `src/lib/leads.ts` | Prüfen, Speichern, Lesen der Leads |
 | `src/views/admin.ts`, `public/assets/css/crm.css` | das CRM unter `/admin` |
 | `migrations/0001_crm.sql` | Tabellen: `leads`, `lead_events`, `sessions`, `login_attempts` |
-| `scripts/test.mjs` | `npm test`: 47 Prüfungen gegen einen echten lokalen Worker |
+| `scripts/test.mjs` | `npm test`: Prüfungen gegen einen echten lokalen Worker |
+| `scripts/hellblau.mjs`, `styles/hellblau-extra.css` | erzeugen `public/assets/css/hellblau.css` |
 | `scripts/demo-lokal.sh`, `scripts/demo-daten.sql` | lokale Demo mit Beispiel-Leads |
+
+## Gestaltung: Hellblau
+
+Die Seite ist hellblau gestaltet (Vorgabe: Hoffnung statt Nacht). Marinas Original-Stylesheet
+`public/assets/css/style.css` bleibt unverändert; daraus erzeugt `node scripts/hellblau.mjs`
+die Datei `public/assets/css/hellblau.css`, die alle Seiten laden:
+
+- dunkle Flächen (Kopfzeile, Hero, Banner, „So arbeite ich“, Fußzeile) werden Hellblau,
+  Text darauf wird dunkel, Kupfer wird Blau, je nach Rolle der Farbe (Hintergrund, Text,
+  Rahmen, Schatten)
+- was sich so nicht treffen lässt, steht von Hand in `styles/hellblau-extra.css`
+  (Knöpfe, Glas-Kopfzeile, heller Schleier über dem Hero-Video und den Fotokarten)
+
+Nach jeder Änderung an `style.css` oder `styles/hellblau-extra.css`:
+
+```bash
+node scripts/hellblau.mjs
+```
+
+Zurück zum Original: in den Seiten wieder `style.css` statt `hellblau.css` verlinken.
+
+**Animationen bleiben:** das Hero-Video (Nebel über dem See, `scene-01-loop.mp4`, auf dem
+Handy `scene-01-loop-m.mp4`), der langsame Zoom der Fotokarten, das Einblenden beim
+Scrollen. Video und Sprachnachricht liefert der Worker in Teilstücken (Range), sonst spielt
+Safari sie nicht ab (`run_worker_first` in `wrangler.toml`, `media()` in `src/index.ts`).
 
 ## Der Stepper
 
@@ -141,6 +167,7 @@ Eigene Domain: in `wrangler.toml` den Block `[[routes]]` einkommentieren und
   Kästen bleiben wie bisher unsichtbar.
 - **Terminkalender ersetzt** durch die Frage nach der Erreichbarkeit: Marina meldet sich
   per WhatsApp.
+- **Hellblau statt Nachtblau/Kupfer** (siehe „Gestaltung“). Das CRM unter `/admin` bleibt dunkel.
 
 **Datenschutzerklärung anpassen, bevor die Seite unter eigener Domain live geht.** Der
 Text ist unverändert übernommen und nennt noch CCM19, Strato als Hoster und die alte

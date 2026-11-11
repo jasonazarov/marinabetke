@@ -1,6 +1,6 @@
 /* ==========================================================================
-   Stepper auf /terminbuchung/: Optik von Marina Betke
-   (Farben und Schriften aus style.css: --nacht, --papier, --kupfer …).
+   Stepper auf /terminbuchung/: Farben und Schriften aus hellblau.css
+   (--nacht, --papier, --kupfer …).
    ========================================================================== */
 
 .stepper { max-width: 720px; margin: 30px 0 0; scroll-margin-top: 120px; }
@@ -13,9 +13,9 @@
   border: 1px solid var(--linie);
   border-radius: 22px;
   background:
-    radial-gradient(120% 80% at 100% 0%, rgba(216, 155, 103, .10), transparent 60%),
+    radial-gradient(120% 80% at 100% 0%, rgba(90, 167, 227, .12), transparent 60%),
     var(--flaeche);
-  box-shadow: 0 30px 70px -38px rgba(16, 42, 54, .45), 0 2px 0 rgba(255, 255, 255, .7) inset;
+  box-shadow: 0 30px 70px -38px rgba(22, 70, 112, .38), 0 2px 0 rgba(255, 255, 255, .7) inset;
 }
 .stepper__card { margin: 0; }
 
@@ -84,11 +84,11 @@
 }
 .opt__box b { font-weight: 600; }
 .opt__box small { display: block; margin-top: 3px; color: var(--leise); font-size: 14.5px; font-weight: 400; }
-.opt:hover .opt__box { border-color: var(--kupfer); box-shadow: 0 10px 24px -18px rgba(150, 87, 38, .6); }
+.opt:hover .opt__box { border-color: var(--kupfer); box-shadow: 0 10px 24px -18px rgba(31, 124, 196, .55); }
 .opt:active .opt__box { transform: scale(.99); }
 .opt input:focus-visible + .opt__box { outline: 3px solid var(--kupfer-tief); outline-offset: 2px; }
 .opt input:checked + .opt__box {
-  border-color: var(--kupfer-tief); background: #fff6ec;
+  border-color: var(--kupfer-tief); background: #eef6fd;
   box-shadow: inset 0 0 0 1px var(--kupfer-tief);
 }
 .opt__check {
@@ -131,7 +131,7 @@
   background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 16 16' fill='none' stroke='%23102a36' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 14px center;
 }
 .field input:focus, .field select:focus, .phonebox select:focus, .phonebox input:focus {
-  outline: 3px solid rgba(183, 111, 50, .45); outline-offset: 1px; border-color: var(--kupfer-tief);
+  outline: 3px solid rgba(31, 124, 196, .35); outline-offset: 1px; border-color: var(--kupfer-tief);
 }
 .field input[aria-invalid="true"], .phonebox input[aria-invalid="true"] { border-color: var(--fehler); }
 .phonebox { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr); gap: 8px; }
@@ -161,7 +161,7 @@
 .stepper__back:hover { background: var(--papier); }
 .stepper__next { margin-left: auto; }
 .stepper__next[disabled] { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
-.stepper__next[disabled]:hover { background: var(--kupfer); color: var(--nacht); }
+.stepper__next[disabled]:hover { background: linear-gradient(180deg, #2a8ad6, #1f7cc4); color: #fff; }
 .stepper__next[disabled]:hover .btn__chip { transform: none; }
 @media (max-width: 560px) {
   .stepper__nav { flex-wrap: wrap; }
@@ -188,25 +188,25 @@
 .stepper__noscript { margin: 0; color: #2f3c42; }
 @media (max-width: 560px) { .stepper__cta { width: 100%; white-space: normal; justify-content: center; text-align: center; } }
 
-/* ---------- Ladebildschirm (in Marinas Nachtblau) ---------- */
+/* ---------- Ladebildschirm (hell, wie die Seite) ---------- */
 html.is-loading { overflow: hidden; }
 .loadscreen {
   position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; padding: 24px;
-  background: radial-gradient(80% 60% at 50% 30%, rgba(216, 155, 103, .18), transparent 70%), var(--nacht-tief);
-  color: var(--flaeche); animation: loadIn .25s ease both;
+  background: radial-gradient(80% 60% at 50% 30%, rgba(90, 167, 227, .28), transparent 70%), #eaf4fb;
+  color: var(--nacht); animation: loadIn .25s ease both;
 }
 .loadscreen[hidden] { display: none; }
 @keyframes loadIn { from { opacity: 0; } to { opacity: 1; } }
 .loadscreen__in { width: min(420px, 100%); text-align: center; }
 .loadscreen__mark { position: relative; display: inline-grid; place-items: center; width: 132px; height: 132px; margin-bottom: 18px; }
 .loadscreen__ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
-.loadscreen__ring-track { fill: none; stroke: rgba(253, 249, 244, .1); stroke-width: 6; }
-.loadscreen__ring-arc { fill: none; stroke: var(--kupfer); stroke-width: 6; stroke-linecap: round; filter: drop-shadow(0 0 10px rgba(216, 155, 103, .55)); }
-.loadscreen__pct { font: 700 30px 'Bricolage Grotesque', Georgia, serif; color: #fff; }
-.loadscreen__brand { margin: 0 0 6px; font: 700 12px 'Hanken Grotesk', system-ui, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--kupfer); }
-.loadscreen__title { margin: 0 0 8px; font: 500 clamp(24px, 4vw, 30px)/1.2 'Bricolage Grotesque', Georgia, serif; color: #fff; }
-.loadscreen__sub { margin: 0 0 22px; color: var(--leise-hell); font-size: 16px; min-height: 1.6em; }
-.loadscreen__bar { height: 4px; border-radius: 4px; background: rgba(253, 249, 244, .1); overflow: hidden; }
+.loadscreen__ring-track { fill: none; stroke: rgba(15, 49, 80, .1); stroke-width: 6; }
+.loadscreen__ring-arc { fill: none; stroke: var(--kupfer); stroke-width: 6; stroke-linecap: round; filter: drop-shadow(0 0 10px rgba(31, 124, 196, .45)); }
+.loadscreen__pct { font: 700 30px 'Bricolage Grotesque', Georgia, serif; color: var(--nacht); }
+.loadscreen__brand { margin: 0 0 6px; font: 700 12px 'Hanken Grotesk', system-ui, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--kupfer-tief); }
+.loadscreen__title { margin: 0 0 8px; font: 500 clamp(24px, 4vw, 30px)/1.2 'Bricolage Grotesque', Georgia, serif; color: var(--nacht); }
+.loadscreen__sub { margin: 0 0 22px; color: var(--leise); font-size: 16px; min-height: 1.6em; }
+.loadscreen__bar { height: 4px; border-radius: 4px; background: rgba(15, 49, 80, .1); overflow: hidden; }
 .loadscreen__bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--kupfer-tief), var(--kupfer-hell)); }
 
 @media (prefers-reduced-motion: reduce) {

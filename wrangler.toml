@@ -25,6 +25,9 @@ fallthrough = true
 directory = "./public"
 binding = "ASSETS"
 not_found_handling = "none"
+# Video und Audio laufen durch den Worker, damit sie Teilstücke (Range) liefern:
+# Safari spielt das Hero-Video und die Sprachnachricht sonst nicht ab.
+run_worker_first = ["/assets/images/*.mp4", "/assets/audio/*"]
 
 [observability]
 enabled = true
