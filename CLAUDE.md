@@ -14,7 +14,10 @@
   Passwort als Secret (`npx wrangler secret put ADMIN_PASSWORD`). Zum Vorführen (Vorgabe des
   Auftraggebers: leichter Zugang) öffnet in der lokalen Demo `http://localhost:8090/admin` das
   Dashboard ohne Passwort: nur mit `LOCAL_DEMO=1` (setzt allein `scripts/demo-lokal.sh`) UND
-  Adresse `localhost`. `LOCAL_DEMO` NIE live setzen.
+  Aufruf auf dem eigenen Rechner (`localhost`, `127.0.0.1`). `LOCAL_DEMO` NIE live setzen.
+- **Hero-Video „Atem“** (Vorgabe des Auftraggebers): `public/assets/images/hero-atem*.mp4`
+  (Kampus Production, Pexels). Alle Links auf die Programmübersicht zeigen auf
+  `/programme/#programme` (springen direkt zu den Karten).
 - **Buchungs-Knöpfe heißen „Begleitung buchen“** (Vorgabe des Auftraggebers), überall.
 - **Vor jedem Commit:** `npx tsc --noEmit` und `npm test` (startet einen lokalen Worker
   mit eigener Datenbank, alle Prüfungen müssen grün sein).

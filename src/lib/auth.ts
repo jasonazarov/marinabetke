@@ -84,13 +84,12 @@ export function isLocal(c: C): boolean {
 
 /**
  * Lokale Demo: Das Dashboard öffnet sich ohne Passwort. Nur wenn LOCAL_DEMO
- * gesetzt ist (setzt allein scripts/demo-lokal.sh) UND die Seite unter der
- * Adresse „localhost“ aufgerufen wird. Live ist LOCAL_DEMO nie gesetzt, und die
- * Adresse ist dort nie localhost: Dort gibt es diesen Zugang nicht.
- * (127.0.0.1 zählt bewusst nicht: Darüber prüft npm test den echten Login.)
+ * gesetzt ist (setzt allein scripts/demo-lokal.sh) UND die Seite auf dem eigenen
+ * Rechner aufgerufen wird (localhost, 127.0.0.1). Live ist LOCAL_DEMO nie
+ * gesetzt, und die Adresse ist dort nie lokal: Dort gibt es diesen Zugang nicht.
  */
 export function demoActive(c: C): boolean {
-  return c.env.LOCAL_DEMO === '1' && new URL(c.req.url).hostname === 'localhost'
+  return c.env.LOCAL_DEMO === '1' && isLocal(c)
 }
 
 export async function demoLogin(c: C): Promise<boolean> {

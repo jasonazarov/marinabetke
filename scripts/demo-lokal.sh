@@ -43,8 +43,25 @@ if [ "$NODE_MAJOR" -lt 20 ]; then
   exit 1
 fi
 
+# Läuft auf dem Port schon eine (alte) Demo, zeigt der Browser deren Stand statt des neuen.
+if curl -fs -o /dev/null --max-time 2 "http://localhost:$PORT/robots.txt" 2>/dev/null; then
+  cat >&2 <<EOF
+
+  Auf Port $PORT läuft schon eine Demo, wahrscheinlich in einem anderen Terminal-Fenster.
+  Dort mit Strg+C beenden und dieses Skript dann neu starten, sonst siehst du den alten Stand.
+
+EOF
+  exit 1
+fi
+
 if [ ! -d node_modules ]; then
   echo "▸ Pakete installieren (nur beim ersten Mal) …"
+  npm install --no-audit --no-fund
+fi
+
+# Neue Pakete nach einem git pull (package-lock.json neuer als node_modules)
+if [ package-lock.json -nt node_modules/.package-lock.json ]; then
+  echo "▸ Pakete aktualisieren …"
   npm install --no-audit --no-fund
 fi
 

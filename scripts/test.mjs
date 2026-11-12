@@ -20,8 +20,6 @@ const PORT = 8799
 const BASE = `http://127.0.0.1:${PORT}`
 const PW = 'test-passwort-' + Math.random().toString(36).slice(2)
 const EMAIL = 'test-login@example.com'
-// Dieselbe Instanz unter „localhost“ = lokale Demo (LOCAL_DEMO), unter 127.0.0.1 = echter Login.
-const DEMO = `http://localhost:${PORT}`
 const persist = mkdtempSync(join(tmpdir(), 'marina-crm-test-'))
 
 let failed = 0
@@ -45,21 +43,34 @@ try {
 console.log('Datenbank anlegen …')
 wrangler(['d1', 'migrations', 'apply', 'marina-betke-crm', '--local', '--persist-to', persist])
 
-console.log('Worker starten …')
 // Eigene Prozessgruppe: So endet beim Aufräumen auch der Worker unter npx/wrangler.
-const dev = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--ip', '127.0.0.1', '--persist-to', persist, '--var', `ADMIN_LOGIN_EMAIL:${EMAIL}`, '--var', `ADMIN_PASSWORD_HASH:${hashPassword(PW)}`, '--var', 'IP_SALT:test', '--var', 'LOCAL_DEMO:1'], {
-  cwd: ROOT,
-  stdio: ['ignore', 'pipe', 'pipe'],
-  detached: true,
-})
+let dev = null
 let log = ''
-dev.stdout.on('data', (d) => (log += d))
-dev.stderr.on('data', (d) => (log += d))
-
-const stop = () => {
+function startWorker(extraVars = []) {
+  log = ''
+  dev = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--ip', '127.0.0.1', '--persist-to', persist, '--var', `ADMIN_LOGIN_EMAIL:${EMAIL}`, '--var', `ADMIN_PASSWORD_HASH:${hashPassword(PW)}`, '--var', 'IP_SALT:test', ...extraVars], {
+    cwd: ROOT,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    detached: true,
+  })
+  dev.stdout.on('data', (d) => (log += d))
+  dev.stderr.on('data', (d) => (log += d))
+}
+async function stopWorker() {
+  if (!dev) return
   try { process.kill(-dev.pid, 'SIGTERM') } catch { dev.kill('SIGTERM') }
+  dev = null
+  for (let i = 0; i < 40; i++) {               // warten, bis der Port frei ist
+    try { await fetch(BASE + '/robots.txt', { signal: AbortSignal.timeout(500) }) } catch { return }
+    await new Promise((r) => setTimeout(r, 250))
+  }
+}
+const stop = () => {
+  if (dev) { try { process.kill(-dev.pid, 'SIGTERM') } catch { dev.kill('SIGTERM') } }
   try { rmSync(persist, { recursive: true, force: true }) } catch {}
 }
+console.log('Worker starten (wie live, ohne Demo-Zugang) …')
+startWorker()
 process.on('SIGINT', () => { stop(); process.exit(130) })
 
 async function ready() {
@@ -114,8 +125,8 @@ try {
   check('hellblau.css ist aus style.css + styles/hellblau-extra.css erzeugt und aktuell', gen)
   const home = await (await fetch(BASE + '/')).text()
   check('Startseite und Terminseite laden hellblau.css (nicht das Original)', home.includes('/assets/css/hellblau.css') && !home.includes('/assets/css/style.css') && tbHtml.includes('/assets/css/hellblau.css'))
-  check('Hero-Video ist eingebunden (Desktop und Handy, absolute Pfade)', home.includes('data-src="/assets/images/scene-01-loop.mp4"') && home.includes('data-src-m="/assets/images/scene-01-loop-m.mp4"'))
-  for (const f of ['/assets/images/scene-01-loop.mp4', '/assets/images/scene-01-loop-m.mp4', '/assets/audio/sprachnachricht-klient.m4a']) {
+  check('Hero-Video „Atem“ ist eingebunden (Desktop und Handy, mit Standbild)', home.includes('data-src="/assets/images/hero-atem.mp4"') && home.includes('data-src-m="/assets/images/hero-atem-m.mp4"') && home.includes('src="/assets/images/hero-atem.webp"') && !home.includes('scene-01-loop'))
+  for (const f of ['/assets/images/hero-atem.mp4', '/assets/images/hero-atem-m.mp4', '/assets/audio/sprachnachricht-klient.m4a']) {
     const part = await fetch(BASE + f, { headers: { Range: 'bytes=0-99' } })
     check(`${f.split('/').pop()} liefert Teilstücke (206, für Safari)`, part.status === 206 && /^bytes 0-99\//.test(part.headers.get('content-range') || '') && (await part.arrayBuffer()).byteLength === 100, String(part.status))
   }
@@ -130,7 +141,7 @@ try {
     home.includes('Du findest wieder zu dir, nur stärker.') && !home.includes('Du vertraust deinem eigenen Urteil'))
   const prog = await (await fetch(BASE + '/programme/')).text()
   check('Menüpunkt „Programme“ springt zu den Programmkarten (#programme)',
-    home.includes('<a href="/programme/#programme">Programme</a>') && !home.includes('<a href="/programme/">Programme</a>') &&
+    home.includes('<a href="/programme/#programme">Programme</a>') && !/href="\/programme\/"/.test(home) &&
     tbHtml.includes('<a href="/programme/#programme">Programme</a>') && prog.includes('<section id="programme"'))
   const btnTexts = (html) => [...html.matchAll(/<a\b[^>]*class="[^"]*\b(?:btn|wa-float)\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => m[1].replace(/<[^>]+>/g, '').trim())
   const homeBtns = btnTexts(home)
@@ -189,19 +200,7 @@ try {
   const set = r.headers.get('set-cookie') || ''
   cookie = set.split(';')[0]
   check('E-Mail (Groß/klein egal) und Passwort: Weiterleitung und HttpOnly-Cookie', r.status === 303 && /mb_crm=/.test(set) && /HttpOnly/i.test(set), `${r.status} ${set}`)
-  check('Login-Seite (127.0.0.1) zeigt den Hinweis zum Passwort, keinen Demo-Knopf', html.includes('login__hint') && html.includes('demo-lokal.sh --passwort') && !html.includes('href="/admin/demo"'))
-
-  console.log('\nLokale Demo: Dashboard ohne Passwort (nur localhost + LOCAL_DEMO)')
-  r = await fetch(BASE + '/admin/demo', { redirect: 'manual' })
-  check('Unter 127.0.0.1 gibt es keinen Demo-Zugang (404)', r.status === 404, String(r.status))
-  r = await fetch(DEMO + '/admin', { redirect: 'manual' })
-  const demoCookie = (r.headers.get('set-cookie') || '').split(';')[0]
-  html = await r.text()
-  check('localhost:…/admin öffnet sofort das Dashboard, mit Sitzung', r.status === 200 && /mb_crm=/.test(demoCookie) && html.includes('Pipeline'), String(r.status))
-  r = await fetch(DEMO + '/admin/demo', { redirect: 'manual' })
-  check('localhost:…/admin/demo leitet ins Dashboard', r.status === 302 && r.headers.get('location').endsWith('/admin'), String(r.status))
-  html = await (await fetch(DEMO + '/admin/login')).text()
-  check('Login-Seite in der Demo: echter Login und Knopf „Dashboard öffnen“', html.includes('name="password"') && html.includes('href="/admin/demo"'))
+  check('Login-Seite (wie live, lokal) zeigt den Hinweis zum Passwort, keinen Demo-Knopf', html.includes('login__hint') && html.includes('demo-lokal.sh --passwort') && !html.includes('href="/admin/demo"'))
 
   console.log('\nCRM: Leads')
   r = await admin('/admin')
@@ -250,8 +249,27 @@ try {
   for (let i = 0; i < 5; i++) last = (await admin('/admin/login', form({ email: EMAIL, password: 'falsch' + i }))).status
   r = await admin('/admin/login', form({ email: EMAIL, password: PW }))
   check('Nach 5 Fehlversuchen ist der Login gesperrt, auch mit richtigem Passwort', r.status === 429, String(r.status))
-  r = await fetch(DEMO + '/admin', { redirect: 'manual' })
-  check('Lokale Demo: Das Dashboard öffnet sich auch während einer Login-Sperre', r.status === 200, String(r.status))
+
+  console.log('\nWie live: kein Zugang ohne Passwort')
+  r = await fetch(BASE + '/admin/demo', { redirect: 'manual' })
+  check('Ohne LOCAL_DEMO gibt es /admin/demo nicht (404)', r.status === 404, String(r.status))
+  r = await fetch(BASE + '/admin', { redirect: 'manual' })
+  check('Ohne LOCAL_DEMO führt /admin zum Login', r.status === 302 && r.headers.get('location').endsWith('/admin/login'), String(r.status))
+
+  // … und am Ende mit derselben Datenbank als lokale Demo neu starten.
+  console.log('\nLokale Demo (LOCAL_DEMO=1): Dashboard frei zugänglich')
+  await stopWorker()
+  startWorker(['--var', 'LOCAL_DEMO:1'])
+  await ready()
+  for (const host of [BASE, `http://localhost:${PORT}`]) {
+    r = await fetch(host + '/admin', { redirect: 'manual' })
+    html = await r.text()
+    check(`${new URL(host).hostname}: /admin öffnet sofort das Dashboard, auch während der Login-Sperre`, r.status === 200 && html.includes('Pipeline') && /mb_crm=/.test(r.headers.get('set-cookie') || ''), String(r.status))
+  }
+  r = await fetch(BASE + '/admin/demo', { redirect: 'manual' })
+  check('/admin/demo leitet ins Dashboard', r.status === 302 && r.headers.get('location').endsWith('/admin'), String(r.status))
+  html = await (await fetch(BASE + '/admin/login')).text()
+  check('Login-Seite in der Demo: echter Login und Knopf „Dashboard öffnen“', html.includes('name="password"') && html.includes('href="/admin/demo"'))
 } catch (err) {
   failed++
   console.error('\nAbbruch:', err.message)

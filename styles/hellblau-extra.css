@@ -112,3 +112,8 @@ body.legal-page .home-header__bar {
    scroll-margin-top an jeder section mit id, je 110 px). Der Sprung landete dadurch 110 px zu
    hoch, und unter der Kopfzeile schaute noch der vorige Abschnitt hervor. Einmal genügt. */
 section[id] { scroll-margin-top: 0; }
+
+/* ---------- Hero-Video „Atem“ (Startseite) ----------
+   Mann atmet mit geschlossenen Augen vor hellem Himmel (Kampus Production, Pexels).
+   Das Motiv ist schon hell: das Video selbst nicht zusätzlich aufhellen (wie in der Vorschau). */
+.hero__photo--atem .hero__video { filter: brightness(1) saturate(1) contrast(1.03); }

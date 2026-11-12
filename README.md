@@ -38,8 +38,9 @@ Hash: Das Repo ist öffentlich, und ein Hash ließe sich offline durchprobieren.
 - **Zum Vorführen:** In der lokalen Demo öffnet **http://localhost:8090/admin** das Dashboard
   sofort, ohne Passwort (immer dieselbe Adresse, gut als Lesezeichen). Den echten Login zeigt
   man nach „Abmelden“; die Login-Seite hat dann zusätzlich den Knopf „Dashboard öffnen“. Das
-  gilt nur, wenn `scripts/demo-lokal.sh` läuft (`LOCAL_DEMO=1`) und die Adresse `localhost`
-  ist; live nie. Jeder Start hebt außerdem eine Login-Sperre aus einer früheren Vorführung auf.
+  gilt nur, wenn `scripts/demo-lokal.sh` läuft (`LOCAL_DEMO=1`) und die Seite auf dem eigenen
+  Rechner aufgerufen wird (`localhost` oder `127.0.0.1`); live nie. Läuft noch eine alte Demo,
+  bricht das Skript mit einem Hinweis ab, statt den alten Stand weiterzuzeigen. Jeder Start hebt außerdem eine Login-Sperre aus einer früheren Vorführung auf.
 - **Login klappt lokal nicht?** `bash scripts/demo-lokal.sh --passwort` und das Passwort zweimal
   eintippen (nicht als Variable übergeben: `$$` und `!` verändert das Terminal).
 - **Live:** einmalig `npx wrangler secret put ADMIN_PASSWORD` und das Passwort eintippen
@@ -85,9 +86,9 @@ node scripts/hellblau.mjs
 
 Zurück zum Original: in den Seiten wieder `style.css` statt `hellblau.css` verlinken.
 
-**Animationen bleiben:** das Hero-Video (Nebel über dem See, `scene-01-loop.mp4`, auf dem
-Handy `scene-01-loop-m.mp4`), der langsame Zoom der Fotokarten, das Einblenden beim
-Scrollen. Video und Sprachnachricht liefert der Worker in Teilstücken (Range), sonst spielt
+**Animationen:** das Hero-Video „Atem“ (ein Mann atmet mit geschlossenen Augen ruhig ein und
+aus, `hero-atem.mp4`, auf dem Handy `hero-atem-m.mp4`, Standbild `hero-atem.webp`; ersetzt das
+frühere Boot auf dem See), der langsame Zoom der Fotokarten, das Einblenden beim Scrollen. Video und Sprachnachricht liefert der Worker in Teilstücken (Range), sonst spielt
 Safari sie nicht ab (`run_worker_first` in `wrangler.toml`, `media()` in `src/index.ts`).
 
 ## Der Stepper
@@ -188,6 +189,10 @@ Fotos von Unsplash, frei nutzbar unter der [Unsplash-Lizenz](https://unsplash.co
   (`chat-nacht-desktop.webp`, `chat-nacht-m.webp`)
 - „Das stille Haus“: Vruyr Martirosyan, [leerer Stuhl am Fenster](https://unsplash.com/photos/empty-chair-near-window-AxZNLcEHNIs)
   (`stilles-haus-1100.webp`, `stilles-haus-m.webp`)
+
+Video im Hero („Atem“): Kampus Production, [Man Breathing while Eyes Closed](https://www.pexels.com/video/man-breathing-while-eyes-closed-6697787/),
+frei nutzbar unter der [Pexels-Lizenz](https://www.pexels.com/license/); nach rechts gerückt,
+als Schleife vor und zurück geschnitten (`hero-atem*.mp4`, `hero-atem*.webp`).
 
 Alle übrigen Bilder stammen von marinabetke.de.
 
