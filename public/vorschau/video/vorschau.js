@@ -1,4 +1,4 @@
-/* VORSCHAU: Hintergrundvideo des Hero umschalten. Unten klicken, ← → oder ?v=0…5 (&rec=1 für Aufnahmen) */
+/* VORSCHAU: Atem-Varianten für das Hero-Video. Unten klicken, ← → oder ?v=0…5 (&rec=1 für Aufnahmen) */
 (function () {
   'use strict';
   var hero = document.querySelector('.hero');
@@ -13,16 +13,16 @@
     { name: 'Alt: Boot', filter: 'brightness(1.22) saturate(.92) contrast(.94)', src: '/assets/images/scene-01-loop.mp4', srcM: '/assets/images/scene-01-loop-m.mp4',
       poster: '/assets/images/scene-01-2000.webp', posterM: '/assets/images/scene-01-m2.webp', hx: '72% 50%', hxm: '38% 50%',
       desc: '<b>Alt, zum Vergleich:</b> das Boot auf dem See, wie bisher.' },
-    { name: 'Atem', filter: 'brightness(1) saturate(1) contrast(1.03)', src: M + 'atem.mp4', srcM: M + 'atem-m.mp4', poster: M + 'atem.webp', posterM: M + 'atem-m.webp', hx: '70% 18%', hxm: '50% 0%',
-      desc: '<b>Atem:</b> Ein Mann atmet mit geschlossenen Augen ruhig ein und aus, vor hellem Himmel. Direkt zur Überschrift: Der Kopf weiß es schon, jetzt kommt der Körper zur Ruhe. <small>Video: Kampus Production, Pexels</small>' },
-    { name: 'Aus dem Nebel', filter: 'brightness(1.08) saturate(.95) contrast(1)', src: M + 'nebel.mp4', srcM: M + 'nebel-m.mp4', poster: M + 'nebel.webp', posterM: M + 'nebel-m.webp', hx: '70% 55%', hxm: '50% 50%',
-      desc: '<b>Aus dem Nebel:</b> Ein Mann geht durch den Nebel auf die aufgehende Sonne zu und wird immer kleiner. Der Weg heraus, Schritt für Schritt. <small>Video: Matthias Groeneveld, Pexels, kühler eingefärbt</small>' },
-    { name: 'Am Meer', filter: 'brightness(1.02) saturate(.95) contrast(1.03)', src: M + 'meer.mp4', srcM: M + 'meer-m.mp4', poster: M + 'meer.webp', posterM: M + 'meer-m.webp', hx: '70% 50%', hxm: '50% 50%',
-      desc: '<b>Am Meer:</b> Ein Mann steht am Wasser, die Wellen kommen und gehen. Wie der Nachhall: Es kommt wieder, aber er steht. <small>Video: Laker, Pexels</small>' },
-    { name: 'Ins Licht', filter: 'brightness(1.1) saturate(.92) contrast(.98)', src: M + 'licht.mp4', srcM: M + 'licht-m.mp4', poster: M + 'licht.webp', posterM: M + 'licht-m.webp', hx: '70% 50%', hxm: '50% 50%',
-      desc: '<b>Ins Licht:</b> Ein Mann geht in einen Wald, durch den Lichtstrahlen fallen. Aufbruch, ohne dass es laut wird. <small>Video: Bart Hoogteijling, Pexels, kühler eingefärbt</small>' },
-    { name: 'Über den Wolken', filter: 'brightness(.97) saturate(1.05) contrast(1.1)', src: M + 'wolken.mp4', srcM: M + 'wolken-m.mp4', poster: M + 'wolken.webp', posterM: M + 'wolken-m.webp', hx: '70% 50%', hxm: '50% 50%',
-      desc: '<b>Über den Wolken:</b> Sonnenaufgang über einer Wolkendecke, ganz ohne Person. Hoffnung, ruhig und weit. <small>Video: Matthias Groeneveld, Pexels, kühler eingefärbt</small>' }
+    { name: 'Atem 1 · bisher', filter: 'brightness(1) saturate(1) contrast(1.03)', src: M + 'atem.mp4', srcM: M + 'atem-m.mp4', poster: M + 'atem.webp', posterM: M + 'atem-m.webp', hx: '70% 18%', hxm: '50% 0%',
+      desc: '<b>Atem 1, bisher:</b> Ein bärtiger Mann atmet mit geschlossenen Augen ruhig ein und aus, vor hellem Himmel. <small>Video: Kampus Production, Pexels</small>' },
+    { name: 'Atem 2 · Profil', filter: 'brightness(1.03) saturate(.95) contrast(1.02)', src: M + 'atem-profil.mp4', srcM: M + 'atem-profil-m.mp4', poster: M + 'atem-profil.webp', posterM: M + 'atem-profil-m.webp', hx: '70% 25%', hxm: '50% 20%',
+      desc: '<b>Atem 2, Profil:</b> Ein Mann um die 40 atmet im Profil mit geschlossenen Augen, sein Blick geht zum Text. Ruhig, nah, erwachsen: passt zu Männern nach langen Beziehungen. <small>Video: James Cheney, Pexels, gespiegelt und kühler</small>' },
+    { name: 'Atem 3 · Im Wind', filter: 'brightness(1.02) saturate(.95) contrast(1.02)', src: M + 'atem-wind.mp4', srcM: M + 'atem-wind-m.mp4', poster: M + 'atem-wind.webp', posterM: M + 'atem-wind-m.webp', hx: '70% 20%', hxm: '50% 10%',
+      desc: '<b>Atem 3, im Wind:</b> Ein Mann steht vor hellem Himmel im Wind, die Haare wehen, er bleibt ruhig und blickt am Ende nach vorn. Standhaft, obwohl es stürmt. <small>Video: Tima Miroshnichenko, Pexels, gespiegelt</small>' },
+    { name: 'Atem 4 · Im Licht', filter: 'brightness(.98) saturate(1) contrast(1.06)', src: M + 'atem-licht.mp4', srcM: M + 'atem-licht-m.mp4', poster: M + 'atem-licht.webp', posterM: M + 'atem-licht-m.webp', hx: '70% 40%', hxm: '50% 30%',
+      desc: '<b>Atem 4, im Licht:</b> Ein Mann liegt mit geschlossenen Augen im Licht, alles hell und weich. Loslassen, auch körperlich. <small>Video: Ron Lach, Pexels, ins Querformat gedreht</small>' },
+    { name: 'Atem 5 · Am Meer', filter: 'brightness(1.06) saturate(.95) contrast(1)', src: M + 'atem-meer.mp4', srcM: M + 'atem-meer-m.mp4', poster: M + 'atem-meer.webp', posterM: M + 'atem-meer-m.webp', hx: '70% 55%', hxm: '50% 40%',
+      desc: '<b>Atem 5, am Meer:</b> Ein Mann sitzt ruhig am grauen Meer und atmet. Ruhiger Ort, ruhiger Körper. <small>Video: Anastasia Shuraeva, Pexels, kühler</small>' }
   ];
 
   var btns = [].slice.call(document.querySelectorAll('.vv-switch [data-v]'));
@@ -54,7 +54,7 @@
     cur = n;
     btns.forEach(function (b) { b.setAttribute('aria-pressed', String(+b.getAttribute('data-v') === n)); });
     desc.innerHTML = V[n].desc;
-    label.innerHTML = (n ? '<b>Vorschlag ' + n + '</b>' : '') + V[n].name;
+    label.innerHTML = V[n].name;
     try { history.replaceState(null, '', '?v=' + n + (rec ? '&rec=1' : '')); } catch (e) {}
     if (first) { apply(n); return; }
     photo.classList.add('is-switching');
