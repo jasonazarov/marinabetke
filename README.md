@@ -35,6 +35,12 @@ Hash: Das Repo ist öffentlich, und ein Hash ließe sich offline durchprobieren.
 
 - **Lokal:** `bash scripts/demo-lokal.sh` fragt beim ersten Start einmal danach und legt nur
   einen PBKDF2-Hash in `.dev.vars` ab (diese Datei ist in `.gitignore`).
+- **Zum Vorführen:** Das Demo-Skript öffnet das Dashboard zusätzlich direkt über den Link
+  **„CRM direkt“** (steht im Terminal), ohne Passwort. Der Link ist bei jedem Start neu und
+  funktioniert nur unter `localhost`; live gibt es ihn nicht (`DEMO_LOGIN_TOKEN` ist dort nie
+  gesetzt). Jeder Start hebt außerdem eine Login-Sperre aus einer früheren Vorführung auf.
+- **Login klappt lokal nicht?** `bash scripts/demo-lokal.sh --passwort` und das Passwort zweimal
+  eintippen (nicht als Variable übergeben: `$$` und `!` verändert das Terminal).
 - **Live:** einmalig `npx wrangler secret put ADMIN_PASSWORD` und das Passwort eintippen
   (Cloudflare speichert es verschlüsselt).
 

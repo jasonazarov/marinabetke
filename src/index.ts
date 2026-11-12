@@ -9,7 +9,7 @@
  * Leads gesammelt, sonst nichts.
  */
 import { Hono, type Context } from 'hono'
-import { currentSession, login, loginReady, logout, sameOrigin } from './lib/auth'
+import { currentSession, demoLogin, isLocal, login, loginReady, logout, sameOrigin } from './lib/auth'
 import { STATUS, isStatus, type Status } from './lib/fragen'
 import {
   LEADS_PER_HOUR, addNote, countBy, createdSince, deleteLead, eventsOf, leadByNr, listLeads, parseLead, recentFromIp,
@@ -134,8 +134,15 @@ app.get('/admin/', (c) => c.redirect('/admin'))
 app.get('/admin/login', async (c) => {
   noStore(c)
   if (await currentSession(c)) return c.redirect('/admin')
-  if (!loginReady(c.env)) return c.html(loginPage(NOT_READY, 'info'))
-  return c.html(loginPage())
+  if (!loginReady(c.env)) return c.html(loginPage(NOT_READY, 'info', '', isLocal(c)))
+  return c.html(loginPage('', 'error', '', isLocal(c)))
+})
+
+/* Lokale Demo: Einmal-Link aus dem Terminal öffnet das Dashboard ohne Passwort (lib/auth.ts, demoLogin). */
+app.get('/admin/demo/:token', async (c) => {
+  noStore(c)
+  if (await demoLogin(c, c.req.param('token'))) return c.redirect('/admin')
+  return c.text('Nicht gefunden', 404)
 })
 
 app.post('/admin/login', async (c) => {
@@ -148,10 +155,10 @@ app.post('/admin/login', async (c) => {
   if (result === 'ok') return c.redirect('/admin', 303)
   const msg = {
     falsch: 'E-Mail oder Passwort stimmt nicht.',
-    gesperrt: 'Zu viele Fehlversuche. Bitte warte 15 Minuten.',
+    gesperrt: 'Zu viele Fehlversuche. Bitte warte 15 Minuten.' + (isLocal(c) ? ' In der lokalen Demo hebt ein Neustart von „bash scripts/demo-lokal.sh“ die Sperre auf.' : ''),
     'nicht-eingerichtet': NOT_READY,
   }[result]
-  return c.html(loginPage(msg, 'error', email), result === 'gesperrt' ? 429 : 401)
+  return c.html(loginPage(msg, 'error', email, isLocal(c)), result === 'gesperrt' ? 429 : 401)
 })
 
 app.post('/admin/logout', async (c) => {

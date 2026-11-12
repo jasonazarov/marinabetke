@@ -126,7 +126,7 @@ ${o.body}
 
 /* ------------------------------------------------------------------ Login */
 
-export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = ''): string => `${head('Anmelden')}
+export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = '', local = false): string => `${head('Anmelden')}
 <body class="crm crm--login">
 <div class="crm__glow" aria-hidden="true"></div>
 <main class="login">
@@ -143,6 +143,11 @@ export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = ''
       <input id="pw" type="password" name="password" autocomplete="current-password" required${email ? ' autofocus' : ''}>
       <button class="button button--full" type="submit">Anmelden ${icon('arrow', 16)}</button>
     </form>
+    ${
+      local
+        ? `<p class="login__hint">Lokale Demo: Das Dashboard öffnet sich auch direkt über den Link „CRM direkt“, den <code>bash scripts/demo-lokal.sh</code> im Terminal anzeigt. Passwort neu setzen: <code>bash scripts/demo-lokal.sh --passwort</code></p>`
+        : ''
+    }
   </div>
 </main>
 </body>

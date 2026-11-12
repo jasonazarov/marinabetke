@@ -11,7 +11,9 @@
 - **CRM-Login** (Vorgabe des Auftraggebers): E-Mail `marinabetke@hypnose.com`
   (`ADMIN_LOGIN_EMAIL` in `wrangler.toml`) + Passwort. Das Repo ist öffentlich: das Passwort
   und sein Hash kommen NIE ins Repo. Lokal liegt nur der Hash in `.dev.vars`, live das
-  Passwort als Secret (`npx wrangler secret put ADMIN_PASSWORD`).
+  Passwort als Secret (`npx wrangler secret put ADMIN_PASSWORD`). Zum Vorführen öffnet die
+  Demo das Dashboard über den Einmal-Link „CRM direkt“ (`/admin/demo/<token>`, nur localhost,
+  `DEMO_LOGIN_TOKEN` setzt allein `scripts/demo-lokal.sh`). Diesen Wert NIE live setzen.
 - **Buchungs-Knöpfe heißen „Begleitung buchen“** (Vorgabe des Auftraggebers), überall.
 - **Vor jedem Commit:** `npx tsc --noEmit` und `npm test` (startet einen lokalen Worker
   mit eigener Datenbank, alle Prüfungen müssen grün sein).

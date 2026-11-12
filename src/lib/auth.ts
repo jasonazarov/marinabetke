@@ -3,7 +3,8 @@
  * (wrangler.toml), Passwort als Hash in ADMIN_PASSWORD_HASH (lokal in
  * .dev.vars) oder als Secret ADMIN_PASSWORD (live). Das Passwort steht nie im
  * Repo. Sitzung als Zufallswert im Cookie, in der Datenbank nur sein Hash. Fünf Fehlversuche je Verbindung
- * in 15 Minuten, danach ist bis zum Ablauf der 15 Minuten Ruhe.
+ * in 15 Minuten, danach ist bis zum Ablauf der 15 Minuten Ruhe. Für die lokale
+ * Demo gibt es zusätzlich einen Einmal-Link (demoLogin), siehe unten.
  */
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
@@ -52,12 +53,19 @@ export async function login(c: C, email: string, password: string, ipHash: strin
     return (await recentFails(env, ipHash, now)) >= MAX_FAILS ? 'gesperrt' : 'falsch'
   }
 
+  await env.DB.prepare('DELETE FROM login_attempts WHERE ip_hash = ? OR at < ?').bind(ipHash, now - FAIL_WINDOW_MS).run()
+  await startSession(c, now)
+  return 'ok'
+}
+
+/** Neue Sitzung: Zufallswert ins Cookie, in die Datenbank nur sein Hash. */
+async function startSession(c: C, now = Date.now()): Promise<void> {
+  const env = c.env
   const token = randomToken()
   await env.DB.batch([
     env.DB.prepare('INSERT INTO sessions (token_hash, created_at, expires_at) VALUES (?, ?, ?)')
       .bind(await sha256('s:' + token), now, now + SESSION_DAYS * 86400_000),
     env.DB.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(now),
-    env.DB.prepare('DELETE FROM login_attempts WHERE ip_hash = ? OR at < ?').bind(ipHash, now - FAIL_WINDOW_MS),
   ])
   setCookie(c, COOKIE, token, {
     path: '/',
@@ -66,7 +74,26 @@ export async function login(c: C, email: string, password: string, ipHash: strin
     sameSite: 'Lax',
     maxAge: SESSION_DAYS * 86400,
   })
-  return 'ok'
+}
+
+/** Läuft die Seite auf dem eigenen Rechner (lokale Demo)? */
+export function isLocal(c: C): boolean {
+  const host = new URL(c.req.url).hostname
+  return host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1'
+}
+
+/**
+ * Lokale Demo: Einmal-Link ins Dashboard, ohne Passwort. Nur wenn
+ * DEMO_LOGIN_TOKEN gesetzt ist (setzt allein scripts/demo-lokal.sh, bei jedem
+ * Start neu und zufällig) UND die Seite unter localhost läuft. Live ist der
+ * Wert nie gesetzt, dort gibt es diesen Zugang nicht.
+ */
+export async function demoLogin(c: C, token: string): Promise<boolean> {
+  const expected = c.env.DEMO_LOGIN_TOKEN
+  if (!expected || expected.length < 16 || !isLocal(c)) return false
+  if (!(await sameSecret(token, expected))) return false
+  await startSession(c)
+  return true
 }
 
 export async function logout(c: C): Promise<void> {

@@ -9,6 +9,9 @@
 # CRM-Login: die E-Mail aus wrangler.toml (ADMIN_LOGIN_EMAIL) und das Passwort,
 # nach dem das Skript beim ersten Start einmal fragt. Gespeichert wird nur sein
 # Hash, in .dev.vars auf diesem Rechner (nicht im Repo).
+# Zum Vorführen öffnet das Skript das Dashboard außerdem direkt über einen
+# Einmal-Link (CRM direkt), ohne Passwort. Der Link gilt nur für diesen Start
+# und nur unter localhost; eine alte Login-Sperre hebt der Start auf.
 #
 # Läuft komplett lokal: eigene Datenbank unter .wrangler/demo, nichts geht ins
 # Internet, nichts wird veröffentlicht. Beenden mit Strg+C.
@@ -74,29 +77,41 @@ if [ "$NEU" = 1 ]; then
   npx wrangler d1 execute marina-betke-crm --local --persist-to "$DATEN" --file scripts/demo-daten.sql </dev/null >/dev/null
 fi
 
+# Eine Login-Sperre aus einer früheren Vorführung (5 Fehlversuche) gilt nicht weiter.
+npx wrangler d1 execute marina-betke-crm --local --persist-to "$DATEN" --command "DELETE FROM login_attempts" </dev/null >/dev/null
+
+# Einmal-Link ins Dashboard: bei jedem Start neu und zufällig, funktioniert nur unter localhost.
+TOKEN="$(node -e "process.stdout.write(require('crypto').randomBytes(18).toString('base64url'))")"
+CRM_LINK="http://localhost:$PORT/admin/demo/$TOKEN"
+
 cat <<EOF
 
-  ┌──────────────────────────────────────────────────────────────┐
+  ┌──────────────────────────────────────────────────────────────────────┐
     Marina Betke · lokale Demo
 
     Webseite      http://localhost:$PORT/
     Stepper       http://localhost:$PORT/terminbuchung/
-    CRM           http://localhost:$PORT/admin
-    Login         $LOGIN_EMAIL + dein Passwort
+    CRM direkt    $CRM_LINK
+                  (öffnet das Dashboard ohne Passwort, nur auf diesem Rechner)
+    CRM-Login     http://localhost:$PORT/admin
+                  $LOGIN_EMAIL + dein Passwort
 
     Was du im Stepper abschickst, steht sofort im CRM.
     Beenden mit Strg+C.
-  └──────────────────────────────────────────────────────────────┘
+  └──────────────────────────────────────────────────────────────────────┘
 
 EOF
 
-# Browser öffnen, sobald die Seite antwortet (macOS: open, Linux: xdg-open).
+# Browser öffnen, sobald die Seite antwortet: Stepper und Dashboard (macOS: open, Linux: xdg-open).
 (
   for _ in $(seq 1 60); do
     if curl -fs -o /dev/null "http://localhost:$PORT/robots.txt" 2>/dev/null; then
-      if command -v open >/dev/null 2>&1; then open "http://localhost:$PORT/terminbuchung/"
-      elif command -v xdg-open >/dev/null 2>&1; then xdg-open "http://localhost:$PORT/terminbuchung/" >/dev/null 2>&1
-      fi
+      for url in "http://localhost:$PORT/terminbuchung/" "$CRM_LINK"; do
+        if command -v open >/dev/null 2>&1; then open "$url"
+        elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1
+        fi
+        sleep 1
+      done
       break
     fi
     sleep 1
@@ -104,4 +119,4 @@ EOF
 ) &
 
 exec npx wrangler dev --port "$PORT" --persist-to "$DATEN" \
-  --var "IP_SALT:demo" --var "LEADS_PER_HOUR:1000" --log-level warn
+  --var "IP_SALT:demo" --var "LEADS_PER_HOUR:1000" --var "DEMO_LOGIN_TOKEN:$TOKEN" --log-level warn

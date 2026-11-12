@@ -315,3 +315,7 @@ h1, h2, h3 { font-family: 'Bricolage Grotesque', Georgia, serif; font-weight: 50
   .lead-head__actions { width: 100%; }
   .lead-head__actions .button { flex: 1; }
 }
+
+/* Hinweis auf der Login-Seite, nur in der lokalen Demo */
+.login__hint { margin: 18px 0 0; padding: 12px 14px; border-radius: 12px; background: rgba(127, 180, 214, .1); border: 1px solid rgba(127, 180, 214, .25); color: #cfe6f4; font-size: 13px; line-height: 1.5; }
+.login__hint code { padding: 1px 5px; border-radius: 5px; background: rgba(11, 32, 41, .7); color: #fff; font-size: 12px; white-space: nowrap; }
