@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Hero-Vorschläge | Vorschau Marina Betke</title>
+<title>Hero-Video-Vorschläge | Vorschau Marina Betke</title>
 <meta name="description" content="Online-Hypnose für Männer nach Trennung und toxischer Beziehung. Mit Marina Betke ruhig bleiben bei Nachrichten, Streit und Übergaben. Kostenloses Kennenlerngespräch, bis zu 60 Minuten.">
 <link rel="stylesheet" href="/assets/css/hellblau.css?v=20261111">
 <link rel="preload" href="/assets/fonts/bricolage-grotesque-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
@@ -11,7 +11,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="theme-color" content="#e3f1fb">
 <meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="/vorschau/hero/vorschau.css?v=1">
+<link rel="stylesheet" href="/vorschau/video/vorschau.css?v=1">
 </head>
 <body class="home" data-screen-label="Vorschau">
 <header class="home-header">
@@ -40,29 +40,6 @@
     <div class="hero__photo hero__photo--scene" style="--hx:72% 50%;--hxm:38% 50%"><picture><source media="(max-width: 900px)" srcset="/assets/images/scene-01-m2.webp"><img src="/assets/images/scene-01-2000.webp" srcset="/assets/images/scene-01-1100.webp 1100w, /assets/images/scene-01-2000.webp 2000w" sizes="100vw" width="2000" height="848" alt="Ruhiger See im Morgenlicht mit einem Ruderboot (KI-generiertes Bild)" fetchpriority="high"></picture><video class="hero__video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" data-src="/assets/images/scene-01-loop.mp4" data-src-m="/assets/images/scene-01-loop-m.mp4"></video></div>
     <div class="hero__scrim"></div>
     <div class="hero__glowline"></div>
-    <div class="hv" aria-hidden="true">
-      <!-- 1 Morgenlicht -->
-      <div class="hv-set" data-set="1">
-        <div class="hv-dawn"></div>
-        <div class="hv-sun"><div class="hv-rays"></div></div>
-        <div class="hv-mist hv-mist--a"></div><div class="hv-mist hv-mist--b"></div><div class="hv-mist hv-mist--c"></div>
-        <div class="hv-glints" data-glints></div>
-      </div>
-      <!-- 2 Nachhall -->
-      <div class="hv-set" data-set="2"><canvas class="hv-canvas" data-ripples></canvas></div>
-      <!-- 3 Atem -->
-      <div class="hv-set" data-set="3">
-        <div class="hv-breath">
-          <i class="hv-breath__glow"></i><i class="hv-breath__ring"></i><i class="hv-breath__ring"></i><i class="hv-breath__ring"></i>
-          <span class="hv-breath__core"><b class="hv-breath__in">einatmen</b><b class="hv-breath__out">ausatmen</b></span>
-        </div>
-      </div>
-      <!-- 4 Gedankenkarussell -->
-      <div class="hv-set" data-set="4"><div class="hv-thoughts" data-thoughts></div></div>
-      <!-- 5 Loslassen -->
-      <div class="hv-set" data-set="5"><svg class="hv-thread" data-thread preserveAspectRatio="none"><defs><linearGradient id="hvThread" x1="0" x2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0"/><stop offset=".18" stop-color="#ffffff"/><stop offset="1" stop-color="#cfe8fb"/></linearGradient></defs><path data-thread-glow/><path data-thread-line/></svg></div>
-    </div>
-    
     <div class="wrap hero__inner">
       <div class="hero__content">
         <span class="eyebrow hero__eyebrow"><span class="eyebrow__dot"></span>Für Männer nach einer narzisstischen Beziehung</span>
@@ -79,20 +56,19 @@
   </section>
 </main>
 
-<nav class="hv-switch" aria-label="Animations-Vorschläge">
-  <p class="hv-switch__title">Vorschläge für die Hero-Animation <span>← → zum Wechseln</span></p>
-  <div class="hv-switch__btns">
-    <button type="button" data-v="0">Jetzt</button>
-    <button type="button" data-v="1">1 · Morgenlicht</button>
-    <button type="button" data-v="2">2 · Nachhall</button>
-    <button type="button" data-v="3">3 · Atem</button>
-    <button type="button" data-v="4">4 · Gedankenkarussell</button>
-    <button type="button" data-v="5">5 · Loslassen</button>
+<nav class="vv-switch" aria-label="Video-Vorschläge">
+  <div class="vv-switch__btns">
+    <button type="button" data-v="0">Alt: Boot</button>
+    <button type="button" data-v="1">1 · Atem</button>
+    <button type="button" data-v="2">2 · Aus dem Nebel</button>
+    <button type="button" data-v="3">3 · Am Meer</button>
+    <button type="button" data-v="4">4 · Ins Licht</button>
+    <button type="button" data-v="5">5 · Über den Wolken</button>
   </div>
-  <p class="hv-switch__desc" data-desc></p>
+  <p class="vv-switch__desc" data-desc></p>
 </nav>
 <script src="/assets/js/main.js?v=202611102300"></script>
 <script>/*hero-video*/(function(){try{var v=document.querySelector('.hero__video');if(!v)return;var rm=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;var c=navigator.connection;if(rm||(c&&(c.saveData||/2g/.test(c.effectiveType||''))))return;function go(){v.src=matchMedia('(max-width: 900px)').matches?v.dataset.srcM:v.dataset.src;v.addEventListener('playing',function(){v.classList.add('is-on')},{once:true});var p=v.play();if(p&&p.catch)p.catch(function(){})}if(document.readyState==='complete')setTimeout(go,300);else window.addEventListener('load',function(){setTimeout(go,300)})}catch(e){}})();</script>
-<script src="/vorschau/hero/vorschau.js?v=1" defer></script>
+<script src="/vorschau/video/vorschau.js?v=1" defer></script>
 </body>
 </html>
