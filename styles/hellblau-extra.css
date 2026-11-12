@@ -106,3 +106,9 @@ body.legal-page .home-header__bar {
     --efpos: 50% 15%;
   }
 }
+
+/* ---------- Sprungziele aus dem Menü (z. B. Programme → /programme/#programme) ----------
+   Das Original rechnet den Abstand zur Kopfzeile doppelt (scroll-padding-top am html UND
+   scroll-margin-top an jeder section mit id, je 110 px). Der Sprung landete dadurch 110 px zu
+   hoch, und unter der Kopfzeile schaute noch der vorige Abschnitt hervor. Einmal genügt. */
+section[id] { scroll-margin-top: 0; }

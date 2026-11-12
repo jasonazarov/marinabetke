@@ -127,6 +127,10 @@ try {
   check('Neue Texte im Abschnitt „Worauf wir hinarbeiten“',
     home.includes('an dem der Gedanke an sie dich den ganzen Abend unberührt lässt. Das Gefühlsgefängnis') &&
     home.includes('Du findest wieder zu dir, nur stärker.') && !home.includes('Du vertraust deinem eigenen Urteil'))
+  const prog = await (await fetch(BASE + '/programme/')).text()
+  check('Menüpunkt „Programme“ springt zu den Programmkarten (#programme)',
+    home.includes('<a href="/programme/#programme">Programme</a>') && !home.includes('<a href="/programme/">Programme</a>') &&
+    tbHtml.includes('<a href="/programme/#programme">Programme</a>') && prog.includes('<section id="programme"'))
   const btnTexts = (html) => [...html.matchAll(/<a\b[^>]*class="[^"]*\b(?:btn|wa-float)\b[^"]*"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => m[1].replace(/<[^>]+>/g, '').trim())
   const homeBtns = btnTexts(home)
   check('Buchungs-Knöpfe heißen „Begleitung buchen“, keiner mehr „Gespräch anfragen“',
