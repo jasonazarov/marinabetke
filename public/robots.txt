@@ -2,6 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /anfrage/
 Disallow: /admin/
+Disallow: /vorschau/
 Disallow: /api/
 Disallow: /rueckmeldung/
 Disallow: /rueckmeldung-4-wochen/
@@ -23,6 +24,7 @@ User-agent: Bingbot
 Allow: /
 Disallow: /anfrage/
 Disallow: /admin/
+Disallow: /vorschau/
 Disallow: /api/
 Disallow: /rueckmeldung/
 Disallow: /rueckmeldung-4-wochen/
