@@ -11,8 +11,8 @@ export interface Env {
   IP_SALT?: string
   /** Anfragen je Verbindung und Stunde (Standard 8). Die lokale Demo setzt mehr. */
   LEADS_PER_HOUR?: string
-  /** Nur lokale Demo: Zufallswert für den Einmal-Link ins Dashboard (scripts/demo-lokal.sh). Live nie gesetzt. */
-  DEMO_LOGIN_TOKEN?: string
+  /** Nur lokale Demo ("1", setzt scripts/demo-lokal.sh): Dashboard unter localhost ohne Passwort. Live nie gesetzt. */
+  LOCAL_DEMO?: string
   /** Optional: Mail an ADMIN_EMAIL bei jeder neuen Anfrage (Resend). */
   RESEND_API_KEY?: string
   ADMIN_EMAIL?: string

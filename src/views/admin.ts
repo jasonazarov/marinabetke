@@ -126,7 +126,8 @@ ${o.body}
 
 /* ------------------------------------------------------------------ Login */
 
-export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = '', local = false): string => `${head('Anmelden')}
+/** `local`: 'demo' = lokale Demo läuft (Knopf ins Dashboard), 'lokal' = eigener Rechner ohne Demo (Hinweis). */
+export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = '', local: 'demo' | 'lokal' | '' = ''): string => `${head('Anmelden')}
 <body class="crm crm--login">
 <div class="crm__glow" aria-hidden="true"></div>
 <main class="login">
@@ -144,9 +145,11 @@ export const loginPage = (msg = '', kind: 'error' | 'info' = 'error', email = ''
       <button class="button button--full" type="submit">Anmelden ${icon('arrow', 16)}</button>
     </form>
     ${
-      local
-        ? `<p class="login__hint">Lokale Demo: Das Dashboard öffnet sich auch direkt über den Link „CRM direkt“, den <code>bash scripts/demo-lokal.sh</code> im Terminal anzeigt. Passwort neu setzen: <code>bash scripts/demo-lokal.sh --passwort</code></p>`
-        : ''
+      local === 'demo'
+        ? `<div class="login__demo"><p>Lokale Demo</p><a class="button button--full button--ghost" href="/admin/demo">Dashboard öffnen, ohne Passwort ${icon('arrow', 16)}</a></div>`
+        : local === 'lokal'
+          ? `<p class="login__hint">Lokale Demo: Mit <code>bash scripts/demo-lokal.sh</code> gestartet, öffnet <code>http://localhost:8090/admin</code> das Dashboard ohne Passwort. Passwort neu setzen: <code>bash scripts/demo-lokal.sh --passwort</code></p>`
+          : ''
     }
   </div>
 </main>

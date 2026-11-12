@@ -3,8 +3,8 @@
  * (wrangler.toml), Passwort als Hash in ADMIN_PASSWORD_HASH (lokal in
  * .dev.vars) oder als Secret ADMIN_PASSWORD (live). Das Passwort steht nie im
  * Repo. Sitzung als Zufallswert im Cookie, in der Datenbank nur sein Hash. Fünf Fehlversuche je Verbindung
- * in 15 Minuten, danach ist bis zum Ablauf der 15 Minuten Ruhe. Für die lokale
- * Demo gibt es zusätzlich einen Einmal-Link (demoLogin), siehe unten.
+ * in 15 Minuten, danach ist bis zum Ablauf der 15 Minuten Ruhe. In der lokalen
+ * Demo öffnet sich das Dashboard ohne Passwort (demoActive), siehe unten.
  */
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
@@ -83,15 +83,18 @@ export function isLocal(c: C): boolean {
 }
 
 /**
- * Lokale Demo: Einmal-Link ins Dashboard, ohne Passwort. Nur wenn
- * DEMO_LOGIN_TOKEN gesetzt ist (setzt allein scripts/demo-lokal.sh, bei jedem
- * Start neu und zufällig) UND die Seite unter localhost läuft. Live ist der
- * Wert nie gesetzt, dort gibt es diesen Zugang nicht.
+ * Lokale Demo: Das Dashboard öffnet sich ohne Passwort. Nur wenn LOCAL_DEMO
+ * gesetzt ist (setzt allein scripts/demo-lokal.sh) UND die Seite unter der
+ * Adresse „localhost“ aufgerufen wird. Live ist LOCAL_DEMO nie gesetzt, und die
+ * Adresse ist dort nie localhost: Dort gibt es diesen Zugang nicht.
+ * (127.0.0.1 zählt bewusst nicht: Darüber prüft npm test den echten Login.)
  */
-export async function demoLogin(c: C, token: string): Promise<boolean> {
-  const expected = c.env.DEMO_LOGIN_TOKEN
-  if (!expected || expected.length < 16 || !isLocal(c)) return false
-  if (!(await sameSecret(token, expected))) return false
+export function demoActive(c: C): boolean {
+  return c.env.LOCAL_DEMO === '1' && new URL(c.req.url).hostname === 'localhost'
+}
+
+export async function demoLogin(c: C): Promise<boolean> {
+  if (!demoActive(c)) return false
   await startSession(c)
   return true
 }

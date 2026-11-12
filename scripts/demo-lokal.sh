@@ -9,9 +9,9 @@
 # CRM-Login: die E-Mail aus wrangler.toml (ADMIN_LOGIN_EMAIL) und das Passwort,
 # nach dem das Skript beim ersten Start einmal fragt. Gespeichert wird nur sein
 # Hash, in .dev.vars auf diesem Rechner (nicht im Repo).
-# Zum Vorführen öffnet das Skript das Dashboard außerdem direkt über einen
-# Einmal-Link (CRM direkt), ohne Passwort. Der Link gilt nur für diesen Start
-# und nur unter localhost; eine alte Login-Sperre hebt der Start auf.
+# Zum Vorführen öffnet http://localhost:8090/admin das Dashboard sofort, ohne
+# Passwort (LOCAL_DEMO, nur unter localhost, live nie). Den echten Login zeigt
+# man nach „Abmelden“. Eine alte Login-Sperre hebt jeder Start auf.
 #
 # Läuft komplett lokal: eigene Datenbank unter .wrangler/demo, nichts geht ins
 # Internet, nichts wird veröffentlicht. Beenden mit Strg+C.
@@ -80,9 +80,7 @@ fi
 # Eine Login-Sperre aus einer früheren Vorführung (5 Fehlversuche) gilt nicht weiter.
 npx wrangler d1 execute marina-betke-crm --local --persist-to "$DATEN" --command "DELETE FROM login_attempts" </dev/null >/dev/null
 
-# Einmal-Link ins Dashboard: bei jedem Start neu und zufällig, funktioniert nur unter localhost.
-TOKEN="$(node -e "process.stdout.write(require('crypto').randomBytes(18).toString('base64url'))")"
-CRM_LINK="http://localhost:$PORT/admin/demo/$TOKEN"
+CRM="http://localhost:$PORT/admin"
 
 cat <<EOF
 
@@ -91,12 +89,14 @@ cat <<EOF
 
     Webseite      http://localhost:$PORT/
     Stepper       http://localhost:$PORT/terminbuchung/
-    CRM direkt    $CRM_LINK
-                  (öffnet das Dashboard ohne Passwort, nur auf diesem Rechner)
-    CRM-Login     http://localhost:$PORT/admin
+    Dashboard     $CRM
+                  öffnet sich in der Demo sofort, ohne Passwort
+                  (immer dieselbe Adresse, gern als Lesezeichen)
+
+    Echten Login vorführen: im Dashboard „Abmelden“, dann
                   $LOGIN_EMAIL + dein Passwort
 
-    Was du im Stepper abschickst, steht sofort im CRM.
+    Was du im Stepper abschickst, steht sofort im Dashboard.
     Beenden mit Strg+C.
   └──────────────────────────────────────────────────────────────────────┘
 
@@ -106,7 +106,7 @@ EOF
 (
   for _ in $(seq 1 60); do
     if curl -fs -o /dev/null "http://localhost:$PORT/robots.txt" 2>/dev/null; then
-      for url in "http://localhost:$PORT/terminbuchung/" "$CRM_LINK"; do
+      for url in "http://localhost:$PORT/terminbuchung/" "$CRM"; do
         if command -v open >/dev/null 2>&1; then open "$url"
         elif command -v xdg-open >/dev/null 2>&1; then xdg-open "$url" >/dev/null 2>&1
         fi
@@ -119,4 +119,4 @@ EOF
 ) &
 
 exec npx wrangler dev --port "$PORT" --persist-to "$DATEN" \
-  --var "IP_SALT:demo" --var "LEADS_PER_HOUR:1000" --var "DEMO_LOGIN_TOKEN:$TOKEN" --log-level warn
+  --var "IP_SALT:demo" --var "LEADS_PER_HOUR:1000" --var "LOCAL_DEMO:1" --log-level warn

@@ -9,7 +9,7 @@
  * Leads gesammelt, sonst nichts.
  */
 import { Hono, type Context } from 'hono'
-import { currentSession, demoLogin, isLocal, login, loginReady, logout, sameOrigin } from './lib/auth'
+import { currentSession, demoActive, demoLogin, isLocal, login, loginReady, logout, sameOrigin } from './lib/auth'
 import { STATUS, isStatus, type Status } from './lib/fragen'
 import {
   LEADS_PER_HOUR, addNote, countBy, createdSince, deleteLead, eventsOf, leadByNr, listLeads, parseLead, recentFromIp,
@@ -122,6 +122,9 @@ app.post('/api/leads', async (c) => {
 
 /* ------------------------------------------------------------- CRM-Login */
 
+/** Was die Login-Seite lokal zusätzlich zeigt: Knopf ins Dashboard (Demo) oder Hinweis zum Passwort. */
+const localMode = (c: C): 'demo' | 'lokal' | '' => (demoActive(c) ? 'demo' : isLocal(c) ? 'lokal' : '')
+
 const NOT_READY =
   'Das CRM ist noch nicht eingerichtet: Es fehlt das Passwort. Lokal richtet „bash scripts/demo-lokal.sh“ es ein, live: npx wrangler secret put ADMIN_PASSWORD.'
 
@@ -134,16 +137,18 @@ app.get('/admin/', (c) => c.redirect('/admin'))
 app.get('/admin/login', async (c) => {
   noStore(c)
   if (await currentSession(c)) return c.redirect('/admin')
-  if (!loginReady(c.env)) return c.html(loginPage(NOT_READY, 'info', '', isLocal(c)))
-  return c.html(loginPage('', 'error', '', isLocal(c)))
+  if (!loginReady(c.env)) return c.html(loginPage(NOT_READY, 'info', '', localMode(c)))
+  return c.html(loginPage('', 'error', '', localMode(c)))
 })
 
-/* Lokale Demo: Einmal-Link aus dem Terminal öffnet das Dashboard ohne Passwort (lib/auth.ts, demoLogin). */
-app.get('/admin/demo/:token', async (c) => {
+/* Lokale Demo: Dashboard ohne Passwort (lib/auth.ts, demoActive). /admin/demo/<irgendwas> für alte Links. */
+const demoRoute = async (c: C) => {
   noStore(c)
-  if (await demoLogin(c, c.req.param('token'))) return c.redirect('/admin')
+  if (await demoLogin(c)) return c.redirect('/admin')
   return c.text('Nicht gefunden', 404)
-})
+}
+app.get('/admin/demo', demoRoute)
+app.get('/admin/demo/:token', demoRoute)
 
 app.post('/admin/login', async (c) => {
   noStore(c)
@@ -158,7 +163,7 @@ app.post('/admin/login', async (c) => {
     gesperrt: 'Zu viele Fehlversuche. Bitte warte 15 Minuten.' + (isLocal(c) ? ' In der lokalen Demo hebt ein Neustart von „bash scripts/demo-lokal.sh“ die Sperre auf.' : ''),
     'nicht-eingerichtet': NOT_READY,
   }[result]
-  return c.html(loginPage(msg, 'error', email, isLocal(c)), result === 'gesperrt' ? 429 : 401)
+  return c.html(loginPage(msg, 'error', email, localMode(c)), result === 'gesperrt' ? 429 : 401)
 })
 
 app.post('/admin/logout', async (c) => {
@@ -169,7 +174,8 @@ app.post('/admin/logout', async (c) => {
 
 /* Alles Weitere unter /admin nur mit Sitzung. */
 const guard = async (c: C, next: () => Promise<void>) => {
-  if (!(await currentSession(c))) return c.redirect('/admin/login')
+  // Lokale Demo (localhost + LOCAL_DEMO): ohne Sitzung direkt ins Dashboard statt zum Login.
+  if (!(await currentSession(c)) && !(await demoLogin(c))) return c.redirect('/admin/login')
   if (c.req.method === 'POST' && !sameOrigin(c)) return c.text('Forbidden', 403)
   await next()
 }

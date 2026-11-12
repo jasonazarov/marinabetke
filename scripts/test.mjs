@@ -20,7 +20,8 @@ const PORT = 8799
 const BASE = `http://127.0.0.1:${PORT}`
 const PW = 'test-passwort-' + Math.random().toString(36).slice(2)
 const EMAIL = 'test-login@example.com'
-const DEMO_TOKEN = 'demo-' + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2)
+// Dieselbe Instanz unter „localhost“ = lokale Demo (LOCAL_DEMO), unter 127.0.0.1 = echter Login.
+const DEMO = `http://localhost:${PORT}`
 const persist = mkdtempSync(join(tmpdir(), 'marina-crm-test-'))
 
 let failed = 0
@@ -46,7 +47,7 @@ wrangler(['d1', 'migrations', 'apply', 'marina-betke-crm', '--local', '--persist
 
 console.log('Worker starten …')
 // Eigene Prozessgruppe: So endet beim Aufräumen auch der Worker unter npx/wrangler.
-const dev = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--ip', '127.0.0.1', '--persist-to', persist, '--var', `ADMIN_LOGIN_EMAIL:${EMAIL}`, '--var', `ADMIN_PASSWORD_HASH:${hashPassword(PW)}`, '--var', 'IP_SALT:test', '--var', `DEMO_LOGIN_TOKEN:${DEMO_TOKEN}`], {
+const dev = spawn('npx', ['wrangler', 'dev', '--port', String(PORT), '--ip', '127.0.0.1', '--persist-to', persist, '--var', `ADMIN_LOGIN_EMAIL:${EMAIL}`, '--var', `ADMIN_PASSWORD_HASH:${hashPassword(PW)}`, '--var', 'IP_SALT:test', '--var', 'LOCAL_DEMO:1'], {
   cwd: ROOT,
   stdio: ['ignore', 'pipe', 'pipe'],
   detached: true,
@@ -188,16 +189,19 @@ try {
   const set = r.headers.get('set-cookie') || ''
   cookie = set.split(';')[0]
   check('E-Mail (Groß/klein egal) und Passwort: Weiterleitung und HttpOnly-Cookie', r.status === 303 && /mb_crm=/.test(set) && /HttpOnly/i.test(set), `${r.status} ${set}`)
-  check('Login-Seite zeigt lokal den Hinweis auf „CRM direkt“', html.includes('login__hint') && html.includes('demo-lokal.sh --passwort'))
+  check('Login-Seite (127.0.0.1) zeigt den Hinweis zum Passwort, keinen Demo-Knopf', html.includes('login__hint') && html.includes('demo-lokal.sh --passwort') && !html.includes('href="/admin/demo"'))
 
-  console.log('\nLokale Demo: Einmal-Link ins Dashboard')
-  r = await fetch(BASE + '/admin/demo/falscher-wert-1234567890', { redirect: 'manual' })
-  check('Falscher Demo-Link: 404', r.status === 404, String(r.status))
-  r = await fetch(BASE + '/admin/demo/' + DEMO_TOKEN, { redirect: 'manual' })
+  console.log('\nLokale Demo: Dashboard ohne Passwort (nur localhost + LOCAL_DEMO)')
+  r = await fetch(BASE + '/admin/demo', { redirect: 'manual' })
+  check('Unter 127.0.0.1 gibt es keinen Demo-Zugang (404)', r.status === 404, String(r.status))
+  r = await fetch(DEMO + '/admin', { redirect: 'manual' })
   const demoCookie = (r.headers.get('set-cookie') || '').split(';')[0]
-  check('Richtiger Demo-Link: Weiterleitung ins Dashboard mit Sitzung', r.status === 302 && r.headers.get('location').endsWith('/admin') && /mb_crm=/.test(demoCookie), String(r.status))
-  r = await fetch(BASE + '/admin', { redirect: 'manual', headers: { Cookie: demoCookie } })
-  check('Mit dem Demo-Link ist das Dashboard offen', r.status === 200)
+  html = await r.text()
+  check('localhost:…/admin öffnet sofort das Dashboard, mit Sitzung', r.status === 200 && /mb_crm=/.test(demoCookie) && html.includes('Pipeline'), String(r.status))
+  r = await fetch(DEMO + '/admin/demo', { redirect: 'manual' })
+  check('localhost:…/admin/demo leitet ins Dashboard', r.status === 302 && r.headers.get('location').endsWith('/admin'), String(r.status))
+  html = await (await fetch(DEMO + '/admin/login')).text()
+  check('Login-Seite in der Demo: echter Login und Knopf „Dashboard öffnen“', html.includes('name="password"') && html.includes('href="/admin/demo"'))
 
   console.log('\nCRM: Leads')
   r = await admin('/admin')
@@ -246,8 +250,8 @@ try {
   for (let i = 0; i < 5; i++) last = (await admin('/admin/login', form({ email: EMAIL, password: 'falsch' + i }))).status
   r = await admin('/admin/login', form({ email: EMAIL, password: PW }))
   check('Nach 5 Fehlversuchen ist der Login gesperrt, auch mit richtigem Passwort', r.status === 429, String(r.status))
-  r = await fetch(BASE + '/admin/demo/' + DEMO_TOKEN, { redirect: 'manual' })
-  check('Lokale Demo: Der Einmal-Link öffnet das Dashboard auch während der Sperre', r.status === 302 && r.headers.get('location').endsWith('/admin'), String(r.status))
+  r = await fetch(DEMO + '/admin', { redirect: 'manual' })
+  check('Lokale Demo: Das Dashboard öffnet sich auch während einer Login-Sperre', r.status === 200, String(r.status))
 } catch (err) {
   failed++
   console.error('\nAbbruch:', err.message)
